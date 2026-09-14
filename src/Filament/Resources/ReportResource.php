@@ -18,7 +18,6 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Reporting\Filament\Clusters\Reporting;
 use Reporting\Filament\Resources\ReportResource\Actions\GenerateReportAction;
 use Reporting\Filament\Resources\ReportResource\Pages\EditReport;
 use Reporting\Filament\Resources\ReportResource\Pages\ListReports;
@@ -28,6 +27,7 @@ use Reporting\Filament\Resources\ReportResource\RelationManagers\RolesRelationMa
 use Reporting\Filament\Resources\ReportResource\RelationManagers\SchedulesRelationManager;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
+use Reporting\Support\Navigation;
 
 final class ReportResource extends Resource
 {
@@ -49,7 +49,12 @@ final class ReportResource extends Resource
 
     public static function getCluster(): string
     {
-        return Reporting::class;
+        return Navigation::cluster();
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return Navigation::group();
     }
 
     public static function form(Schema $schema): Schema

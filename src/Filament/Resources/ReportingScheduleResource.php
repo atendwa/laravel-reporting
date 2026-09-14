@@ -21,12 +21,12 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Reporting\Filament\Clusters\Reporting;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\CreateReportingSchedule;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\EditReportingSchedule;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\ListReportingSchedules;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\ViewReportingSchedule;
 use Reporting\Models\ReportingSchedule;
+use Reporting\Support\Navigation;
 
 final class ReportingScheduleResource extends Resource
 {
@@ -48,7 +48,12 @@ final class ReportingScheduleResource extends Resource
 
     public static function getCluster(): string
     {
-        return Reporting::class;
+        return Navigation::cluster();
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return Navigation::group();
     }
 
     public static function form(Schema $schema): Schema

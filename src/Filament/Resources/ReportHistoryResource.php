@@ -16,11 +16,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Reporting\Consts\ReportSource;
 use Reporting\Consts\ReportStatus;
-use Reporting\Filament\Clusters\Reporting;
 use Reporting\Filament\Resources\ReportHistoryResource\Pages\ListReportHistories;
 use Reporting\Filament\Resources\ReportHistoryResource\Pages\ViewReportHistory;
 use Reporting\Jobs\GenerateReportJob;
 use Reporting\Models\ReportHistory;
+use Reporting\Support\Navigation;
 
 final class ReportHistoryResource extends Resource
 {
@@ -43,7 +43,12 @@ final class ReportHistoryResource extends Resource
 
     public static function getCluster(): string
     {
-        return Reporting::class;
+        return Navigation::cluster();
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return Navigation::group();
     }
 
     public static function table(Table $table): Table

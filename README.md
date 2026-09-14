@@ -27,7 +27,16 @@ composer require atendwa/laravel-reporting
 php artisan migrate
 ```
 
-Publish the config if you need to change defaults:
+Publish the config and choose where the resources sit in your Filament navigation:
+
+```bash
+php artisan reporting:install
+```
+
+This asks whether to nest the Reports/Histories/Schedules resources under one of your own Filament
+clusters (giving its FQCN), or a plain navigation group label, or leave them under the package's own
+built-in "Reporting" cluster (the default). You can also just publish the config file directly and edit
+it by hand:
 
 ```bash
 php artisan vendor:publish --tag=reporting-config
@@ -90,6 +99,7 @@ relation.
 
 | Command                                | Purpose                                                    |
 |-----------------------------------------|-------------------------------------------------------------|
+| `reporting:install`                     | Publish config and set the navigation cluster/group           |
 | `reporting:run {report}`                | Manually trigger a report                                   |
 | `reporting:make:generator`              | Scaffold a new report generator class                       |
 | `reporting:make:report-from-generator`  | Create a Report model from a discovered generator            |
@@ -105,8 +115,24 @@ Key options: `generator_namespaces`, `generator_paths`, `disk`, `directory`, `de
 `pdf_engine` (`dompdf`|`mpdf`), `chunk_size`, `pdf_chunk_size`, `logo_path`, `queue`, `cleanup_days`,
 `team_model`.
 
-The Filament resources (Reports, Histories, Schedules) are available out of the box under a `Reporting`
-cluster — no additional configuration needed beyond registering the plugin on your panel.
+### Navigation (`navigation.cluster` / `navigation.group`)
+
+The Reports, Histories, and Schedules resources are available out of the box under this package's own
+`Reporting\Filament\Clusters\Reporting` cluster — no configuration needed to get started. To place them
+somewhere else in your panel instead, set either key (applied consistently across all three resources):
+
+```php
+'navigation' => [
+    // Nest under one of your own clusters instead of the package's built-in one.
+    'cluster' => App\Filament\Clusters\Operations::class,
+
+    // Or, if you don't use a cluster, group them under a plain navigation label.
+    'group' => 'Operations',
+],
+```
+
+`reporting:install` walks you through setting these interactively; `cluster` wins over `group` when both
+are set, since a cluster manages its own top-level navigation entry.
 
 ## Known portability boundary
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Reporting\Commands\CleanupReportsCommand;
 use Reporting\Commands\ClearGeneratorCacheCommand;
+use Reporting\Commands\InstallCommand;
 use Reporting\Commands\MakeGeneratorCommand;
 use Reporting\Commands\MakeReportFromGeneratorCommand;
 use Reporting\Commands\ResetTablesCommand;
@@ -57,6 +58,7 @@ final class ReportingServiceProvider extends PackageServiceProvider
                 MakeReportFromGeneratorCommand::class,
                 ClearGeneratorCacheCommand::class,
                 CleanupReportsCommand::class,
+                InstallCommand::class,
                 MakeGeneratorCommand::class,
                 ResetTablesCommand::class,
                 RunReportCommand::class,

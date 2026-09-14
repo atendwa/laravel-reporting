@@ -4,6 +4,15 @@ All notable changes to `atendwa/laravel-reporting` will be documented here.
 
 ## Unreleased
 
+- Added `reporting:install` (Shield-style) to publish the config and interactively choose the Filament
+  cluster or navigation group the Reports/Histories/Schedules resources register under.
+- Added `reporting.navigation.cluster` / `reporting.navigation.group` config keys, applied consistently
+  across all three resources; defaults to the package's own built-in `Reporting` cluster.
+- Removed the last hardcoded navigation group: `ReportingScheduleResource` previously always showed
+  under "Support Data" via `BetaFilament\Concerns\SupportResourceNavigationGroup`; it's config-driven now.
+
+## v0.1.0
+
 - Initial extraction as a standalone composer package from its origin monorepo.
 - Restructured to standard Laravel-package layout (`config/`, `database/`, `resources/`, `routes/` at
   package root; `src/` for PHP classes only), wired through `spatie/laravel-package-tools`.

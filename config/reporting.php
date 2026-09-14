@@ -133,4 +133,27 @@ return [
     |
     */
     'team_model' => env('REPORTING_TEAM_MODEL'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Navigation
+    |--------------------------------------------------------------------------
+    |
+    | Controls where the Reports, Histories, and Schedules resources register
+    | in your Filament panel's navigation. This applies to all three
+    | resources consistently.
+    |
+    | 'cluster' — FQCN of a Filament cluster to nest the resources under.
+    |             Leave null to use this package's own built-in
+    |             Reporting\Filament\Clusters\Reporting cluster.
+    |
+    | 'group'   — Navigation group label. Only takes effect on resources
+    |             that aren't inside a cluster, since a cluster manages its
+    |             own top-level navigation entry.
+    |
+    */
+    'navigation' => [
+        'cluster' => env('REPORTING_NAVIGATION_CLUSTER'),
+        'group' => env('REPORTING_NAVIGATION_GROUP'),
+    ],
 ];
