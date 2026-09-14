@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Reporting\Concerns\HasPluginPrefixedTableName;
+use Reporting\Concerns\ModelFactoryHelpers;
 use Reporting\Consts\Reporting;
 use Reporting\Database\Factories\ReportingScheduleFactory;
-use Support\Concerns\HasPluginPrefixedTableName;
-use Support\Concerns\ModelFactoryHelpers;
 
 /**
  * @property int $id

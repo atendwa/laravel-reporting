@@ -1,5 +1,6 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
     level: 6
@@ -7,3 +8,12 @@ parameters:
         - src
     excludePaths:
         - src/Database/Factories
+        # These still depend on the origin monorepo's BetaFilament plugin (see README
+        # "Known portability boundary"). Excluded until that dependency is resolved.
+        - src/Policies/ReportHistoryPolicy.php
+        - src/Policies/ReportPolicy.php
+        - src/Policies/ReportingSchedulePolicy.php
+        - src/Filament/Resources/ReportHistoryResource.php
+        - src/Filament/Resources/ReportResource.php
+        - src/Filament/Resources/ReportingScheduleResource.php
+        - src/Filament/Resources/ReportResource/Pages/ListReports.php

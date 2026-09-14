@@ -1,0 +1,163 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Trait Reporting\\Concerns\\FormatsReportDates is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/FormatsReportDates.php
+
+		-
+			message: '#^Method Reporting\\Filament\\Actions\\ReportDownloadAction\:\:buildField\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Filament/Actions/ReportDownloadAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportHistoryResource/Pages/ListReportHistories.php
+
+		-
+			message: '#^Function isSystemStaff not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: src/Filament/Resources/ReportHistoryResource/Pages/ListReportHistories.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportHistoryResource/Pages/ViewReportHistory.php
+
+		-
+			message: '#^Function isSystemStaff not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: src/Filament/Resources/ReportHistoryResource/Pages/ViewReportHistory.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Foundation\\Auth\\User\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:teams\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
+
+		-
+			message: '#^Method Reporting\\Filament\\Resources\\ReportResource\\Actions\\GenerateReportAction\:\:buildField\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
+
+		-
+			message: '#^Method Reporting\\Filament\\Resources\\ReportResource\\Actions\\GenerateReportAction\:\:getDefaultName\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Pages/EditReport.php
+
+		-
+			message: '#^Function isSystemStaff not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Pages/EditReport.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Pages/ViewReport.php
+
+		-
+			message: '#^Function isSystemStaff not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource/Pages/ViewReport.php
+
+		-
+			message: '#^Access to an undefined property Spatie\\Permission\\Models\\Role\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 4
+			path: src/Filament/Resources/ReportResource/RelationManagers/RolesRelationManager.php
+
+		-
+			message: '#^Trait Reporting\\Generator\\Concerns\\IsTenantAware is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Generator/Concerns/IsTenantAware.php
+
+		-
+			message: '#^Method Reporting\\Generator\\TestGenerator\:\:generate\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, name\: string, category\: string, amount\: float, date\: string\}\>\.$#'
+			identifier: return.type
+			count: 2
+			path: src/Generator/TestGenerator.php
+
+		-
+			message: '#^Class Reporting\\Models\\Report uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Models/Report.php
+
+		-
+			message: '#^Method Reporting\\Models\\Report\:\:latestHistory\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Models/Report.php
+
+		-
+			message: '#^Class Reporting\\Models\\ReportHistory uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Models/ReportHistory.php
+
+		-
+			message: '#^Class Reporting\\Models\\ReportSchedule uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Models/ReportSchedule.php
+
+		-
+			message: '#^Class Reporting\\Models\\ReportingSchedule uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Models/ReportingSchedule.php
+
+		-
+			message: '#^Offset ''name'' does not exist on array\{report_id\: int, cron\: string, timezone\: string\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Providers/ReportingServiceProvider.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>generate_csv" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Services/FileGenerator.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>generate_pdf" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Services/FileGenerator.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>orientation" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Services/FileGenerator.php

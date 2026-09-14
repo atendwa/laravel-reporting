@@ -1,6 +1,15 @@
 # Laravel Reporting
 
-A queue-based reporting system for Laravel with Filament UI integration.
+A queue-based reporting system for Laravel with Filament UI integration: define generators, schedule them,
+export CSV/PDF, and track every run's history — all through a Filament panel.
+
+## Requirements
+
+| Package               | Version       |
+|------------------------|---------------|
+| PHP                    | ^8.3          |
+| Laravel                | ^11.0 \| ^12.0 \| ^13.0 |
+| Filament               | ^5.0          |
 
 ## What it does
 
@@ -31,6 +40,30 @@ composer require barryvdh/laravel-dompdf   # config('reporting.pdf_engine') = 'd
 composer require mpdf/mpdf                 # config('reporting.pdf_engine') = 'mpdf'
 ```
 
+## Quick start
+
+1. Scaffold a generator:
+
+   ```bash
+   php artisan reporting:make:generator
+   ```
+
+   This creates `app/Reports/Generators/YourReportGenerator.php` implementing `GeneratorInterface`
+   (see [`src/Contracts/GeneratorInterface.php`](src/Contracts/GeneratorInterface.php) for the full
+   contract — `generate()`, `getHeaders()`, `getModifiers()`, `getName()`, etc.).
+
+2. Register it as a `Report`:
+
+   ```bash
+   php artisan reporting:make:report-from-generator
+   ```
+
+   This walks you through picking a discovered generator and creates the `Report` row that Filament
+   and the scheduler use.
+
+3. Open the **Reporting** cluster in your Filament panel — your report is ready to run, schedule, and
+   download from there.
+
 ## Key concepts
 
 **Generators** live in `App\Reports\Generators` (configurable via `reporting.generator_namespaces` /
@@ -53,13 +86,6 @@ data/options to a team/tenant model. Set `reporting.team_model` to your tenant m
 it; the model must expose an `is_default` boolean column, and your user model must expose a `teams()`
 relation.
 
-## Getting started
-
-```bash
-php artisan reporting:make:generator                 # scaffolds app/Reports/Generators/YourReportGenerator.php
-php artisan reporting:make:report-from-generator     # creates a Report model from a discovered generator
-```
-
 ## Artisan commands
 
 | Command                                | Purpose                                                    |
@@ -79,22 +105,33 @@ Key options: `generator_namespaces`, `generator_paths`, `disk`, `directory`, `de
 `pdf_engine` (`dompdf`|`mpdf`), `chunk_size`, `pdf_chunk_size`, `logo_path`, `queue`, `cleanup_days`,
 `team_model`.
 
----
-
 The Filament resources (Reports, Histories, Schedules) are available out of the box under a `Reporting`
 cluster — no additional configuration needed beyond registering the plugin on your panel.
 
 ## Known portability boundary
 
-Some Filament resources in this package still use small helper traits from this project's in-house
-`BetaFilament` plugin (`ResourceAccessGate`, `UsesFilamentPolicySetup`, `SupportResourceNavigationGroup`,
-and an overridden `ListRecords` page). Inside the `corporate_and_legal_erp` monorepo these resolve
-automatically. If you install this package in a project that doesn't have `BetaFilament`, you'll need to
-either provide equivalent implementations under those same class names or extract `BetaFilament` as its
-own package too. This is the one remaining hard dependency on the original monorepo.
+Some Filament resources in this package still use small helper traits from an in-house `BetaFilament`
+plugin (`ResourceAccessGate`, `UsesFilamentPolicySetup`, `SupportResourceNavigationGroup`, and an
+overridden `ListRecords` page) that hasn't been extracted yet. If you install this package in a project
+that doesn't have `BetaFilament`, you'll need to either provide equivalent implementations under those
+same class names or wait for `BetaFilament` to be published separately. This is the one remaining hard
+dependency on the package's origin project.
 
-## Tests
+## Testing
 
-Test files live under `tests/` but were written against the host app's `Tests\TestCase` and are not yet
-wired up to run standalone (no Orchestra Testbench harness yet). Treat them as a starting point, not a
-passing suite, until that's set up.
+```bash
+composer install
+vendor/bin/pest
+```
+
+Test files under `tests/` are being migrated to run standalone via Orchestra Testbench — some may not
+pass yet outside the origin monorepo. Contributions welcome.
+
+## Contributing
+
+Issues and pull requests are welcome. Please run `vendor/bin/pint` and `vendor/bin/phpstan analyse`
+before submitting.
+
+## License
+
+The MIT License (MIT). See [LICENSE](LICENSE) for details.

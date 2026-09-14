@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Reporting\Concerns\HasPluginPrefixedTableName;
+use Reporting\Concerns\ModelFactoryHelpers;
 use Reporting\Consts\Reporting;
 use Reporting\Consts\ReportStatus;
 use Reporting\Database\Factories\ReportHistoryFactory;
-use Support\Concerns\HasPluginPrefixedTableName;
-use Support\Concerns\ModelFactoryHelpers;
 
 /**
  * @property int $id
