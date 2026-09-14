@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Collection;
+use Reporting\Contracts\GeneratorInterface;
+{{ tenant_imports }}
+use {{ model_fqcn }};
+
+final class {{ class }} implements GeneratorInterface{{ tenant_interface }}
+{
+    {{ tenant_trait }}
+
+    /**
+     * @param  array<string, mixed>  $modifiers
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function generate(array $modifiers): Collection
+    {
+        $query = {{ model }}::query()
+            ->withoutGlobalScopes();
+
+        {{ tenant_apply_scope }}
+
+        if (isset($modifiers['date_from'])) {
+            $query->where('created_at', '>=', $modifiers['date_from']);
+        }
+
+        if (isset($modifiers['date_to'])) {
+            $query->where('created_at', '<=', $modifiers['date_to']);
+        }
+
+        return $query->get()->map(fn ({{ model }} $record): array => [
+            {{ model_columns }}
+        ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getModifiers(): array
+    {
+        return [
+            {{ tenant_modifier }}
+            [
+                'name' => 'date_from',
+                'label' => 'Date From',
+                'type' => 'date',
+                'required' => false,
+                'default' => null,
+                'validation' => 'nullable|date',
+                'options' => [],
+            ],
+            [
+                'name' => 'date_to',
+                'label' => 'Date To',
+                'type' => 'date',
+                'required' => false,
+                'default' => null,
+                'validation' => 'nullable|date',
+                'options' => [],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getHeaders(): array
+    {
+        return [{{ headers }}];
+    }
+
+    public function getName(): string
+    {
+        return '{{ name }}';
+    }
+
+    public function getDescription(): string
+    {
+        return '{{ description }}';
+    }
+
+    /**
+     * @param  array<string, mixed>  $modifiers
+     */
+    public function validateModifiers(array $modifiers): bool
+    {
+        return true;
+    }
+
+    public function estimateExecutionTime(): ?int
+    {
+        return {{ execution_time }};
+    }
+
+    public function isHeavy(): bool
+    {
+        return {{ is_heavy }};
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getDefaultParameters(): array
+    {
+        return [
+            {{ tenant_default_parameter }}'date_from' => null,
+            'date_to' => null,
+        ];
+    }
+
+    public function getGroupingConfig(): ?array
+    {
+        return null;
+    }
+}

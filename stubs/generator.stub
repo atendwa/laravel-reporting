@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Collection;
+use Reporting\Contracts\GeneratorInterface;
+{{ tenant_imports }}
+{{ model_import }}
+
+final class {{ class }} implements GeneratorInterface{{ tenant_interface }}
+{
+    {{ tenant_trait }}
+
+    /**
+     * @param  array<string, mixed>  $modifiers
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function generate(array $modifiers): Collection
+    {
+        {{ model_query }}
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getModifiers(): array
+    {
+        return [
+            {{ tenant_modifier }}{{ modifiers }}
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getHeaders(): array
+    {
+        return [{{ headers }}];
+    }
+
+    public function getName(): string
+    {
+        return '{{ name }}';
+    }
+
+    public function getDescription(): string
+    {
+        return '{{ description }}';
+    }
+
+    /**
+     * @param  array<string, mixed>  $modifiers
+     */
+    public function validateModifiers(array $modifiers): bool
+    {
+        return true;
+    }
+
+    public function estimateExecutionTime(): ?int
+    {
+        return {{ execution_time }};
+    }
+
+    public function isHeavy(): bool
+    {
+        return {{ is_heavy }};
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getDefaultParameters(): array
+    {
+        return [{{ tenant_default_parameter }}{{ default_parameters }}];
+    }
+
+    public function getGroupingConfig(): ?array
+    {
+        return null;
+    }
+}
