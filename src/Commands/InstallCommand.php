@@ -83,14 +83,14 @@ final class InstallCommand extends Command
 
         $contents = preg_replace(
             "/'cluster' => [^,]+,/",
-            "'cluster' => " . var_export($cluster, true) . ',',
+            "'cluster' => " . $this->exportValue($cluster) . ',',
             $contents,
             limit: 1,
         ) ?? $contents;
 
         $contents = preg_replace(
             "/'group' => [^,]+,/",
-            "'group' => " . var_export($group, true) . ',',
+            "'group' => " . $this->exportValue($group) . ',',
             $contents,
             limit: 1,
         ) ?? $contents;
@@ -102,8 +102,8 @@ final class InstallCommand extends Command
     {
         $block = sprintf(
             "\n    'navigation' => [\n        'cluster' => %s,\n        'group' => %s,\n    ],\n];\n",
-            var_export($cluster, true),
-            var_export($group, true),
+            $this->exportValue($cluster),
+            $this->exportValue($group),
         );
 
         $lastArrayClose = mb_strrpos($contents, '];');
@@ -113,5 +113,10 @@ final class InstallCommand extends Command
         }
 
         return mb_substr($contents, 0, $lastArrayClose) . $block;
+    }
+
+    private function exportValue(?string $value): string
+    {
+        return $value === null ? 'null' : var_export($value, true);
     }
 }
