@@ -2,6 +2,11 @@
 
 All notable changes to `atendwa/laravel-reporting` will be documented here.
 
+## v0.1.4
+
+- Migrations no longer depend on the host project's `Support\Abstractions\PluginMigration` or the `audit()` Blueprint
+  macro: the package ships `Reporting\Database\PluginMigration` with its own `auditColumns()`.
+
 ## v0.1.3
 
 - Removed the last dependencies on the origin project: the `BetaFilament` traits/overrides and the global

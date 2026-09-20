@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Reporting\Database\PluginMigration;
 use Reporting\Models\ReportingSchedule;
-use Support\Abstractions\PluginMigration;
 
 return new class extends PluginMigration
 {
@@ -23,7 +23,7 @@ return new class extends PluginMigration
             $blueprint->text('description')->nullable();
             $blueprint->string('cron_expression');
             $blueprint->string('timezone')->default(config('app.timezone'));
-            $blueprint->audit();
+            $this->auditColumns($blueprint);
         });
     }
 

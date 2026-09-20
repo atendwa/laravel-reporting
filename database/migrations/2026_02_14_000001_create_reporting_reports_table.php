@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Reporting\Database\PluginMigration;
 use Reporting\Models\Report;
-use Support\Abstractions\PluginMigration;
 
 return new class extends PluginMigration
 {
@@ -34,7 +34,7 @@ return new class extends PluginMigration
             $blueprint->string('group_value_column')->nullable();
 
             $blueprint->unsignedInteger('cooldown_minutes')->nullable();
-            $blueprint->audit();
+            $this->auditColumns($blueprint);
         });
     }
 

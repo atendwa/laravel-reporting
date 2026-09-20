@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Reporting\Database\PluginMigration;
 use Reporting\Models\Report;
 use Reporting\Models\ReportingSchedule;
 use Reporting\Models\ReportSchedule;
-use Support\Abstractions\PluginMigration;
 
 return new class extends PluginMigration
 {

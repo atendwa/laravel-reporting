@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Reporting\Database\PluginMigration;
 use Reporting\Models\Report;
 use Reporting\Models\ReportHistory;
-use Support\Abstractions\PluginMigration;
 
 return new class extends PluginMigration
 {
@@ -33,7 +33,7 @@ return new class extends PluginMigration
             $blueprint->timestamp('started_at')->nullable();
             $blueprint->timestamp('completed_at')->nullable();
             $blueprint->text('error_message')->nullable();
-            $blueprint->audit();
+            $this->auditColumns($blueprint);
         });
     }
 
