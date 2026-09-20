@@ -134,15 +134,6 @@ somewhere else in your panel instead, set either key (applied consistently acros
 `reporting:install` walks you through setting these interactively; `cluster` wins over `group` when both
 are set, since a cluster manages its own top-level navigation entry.
 
-## Known portability boundary
-
-Some Filament resources in this package still use small helper traits from an in-house `BetaFilament`
-plugin (`ResourceAccessGate`, `UsesFilamentPolicySetup`, `SupportResourceNavigationGroup`, and an
-overridden `ListRecords` page) that hasn't been extracted yet. If you install this package in a project
-that doesn't have `BetaFilament`, you'll need to either provide equivalent implementations under those
-same class names or wait for `BetaFilament` to be published separately. This is the one remaining hard
-dependency on the package's origin project.
-
 ## Testing
 
 ```bash

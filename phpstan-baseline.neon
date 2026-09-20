@@ -13,28 +13,22 @@ parameters:
 			path: src/Filament/Actions/ReportDownloadAction.php
 
 		-
+			message: '#^Method Reporting\\Filament\\Resources\\ReportHistoryResource\:\:getEloquentQuery\(\) should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<Reporting\\Models\\ReportHistory\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Filament/Resources/ReportHistoryResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Foundation\\Auth\\User\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Filament/Resources/ReportResource.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: src/Filament/Resources/ReportHistoryResource/Pages/ListReportHistories.php
-
-		-
-			message: '#^Function isSystemStaff not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Filament/Resources/ReportHistoryResource/Pages/ListReportHistories.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Filament/Resources/ReportHistoryResource/Pages/ViewReportHistory.php
-
-		-
-			message: '#^Function isSystemStaff not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Filament/Resources/ReportHistoryResource/Pages/ViewReportHistory.php
+			path: src/Filament/Resources/ReportResource.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Foundation\\Auth\\User\:\:\$roles\.$#'
@@ -65,30 +59,6 @@ parameters:
 			identifier: return.unusedType
 			count: 1
 			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Filament/Resources/ReportResource/Pages/EditReport.php
-
-		-
-			message: '#^Function isSystemStaff not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Filament/Resources/ReportResource/Pages/EditReport.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:hasRole\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Filament/Resources/ReportResource/Pages/ViewReport.php
-
-		-
-			message: '#^Function isSystemStaff not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/Filament/Resources/ReportResource/Pages/ViewReport.php
 
 		-
 			message: '#^Access to an undefined property Spatie\\Permission\\Models\\Role\:\:\$pivot\.$#'
@@ -137,6 +107,24 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: src/Models/ReportingSchedule.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:can\(\)\.$#'
+			identifier: method.notFound
+			count: 12
+			path: src/Policies/ReportHistoryPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:can\(\)\.$#'
+			identifier: method.notFound
+			count: 12
+			path: src/Policies/ReportPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:can\(\)\.$#'
+			identifier: method.notFound
+			count: 12
+			path: src/Policies/ReportingSchedulePolicy.php
 
 		-
 			message: '#^Offset ''name'' does not exist on array\{report_id\: int, cron\: string, timezone\: string\}\.$#'

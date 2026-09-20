@@ -53,7 +53,7 @@ final class RunTestsCommand extends Command
     private function extractCoverageScore(string $output): ?string
     {
         if (preg_match('/Total:\s*([\d.]+\s*%)/i', $output, $matches)) {
-            return trim($matches[1]);
+            return mb_trim($matches[1]);
         }
 
         return null;
@@ -62,7 +62,7 @@ final class RunTestsCommand extends Command
     private function extractTestSummary(string $output): ?string
     {
         if (preg_match('/Tests:\s*(.+?)(?:\r?\n|$)/i', $output, $matches)) {
-            return 'Tests: ' . trim($matches[1]);
+            return 'Tests: ' . mb_trim($matches[1]);
         }
 
         return null;

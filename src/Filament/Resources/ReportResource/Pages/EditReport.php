@@ -7,6 +7,7 @@ namespace Reporting\Filament\Resources\ReportResource\Pages;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Reporting\Filament\Resources\ReportResource;
+use Reporting\Support\Access;
 
 final class EditReport extends EditRecord
 {
@@ -14,7 +15,7 @@ final class EditReport extends EditRecord
 
     public static function canAccess(array $parameters = []): bool
     {
-        return isSystemStaff() || auth()->user()?->hasRole('super_admin');
+        return Access::isAdministrator();
     }
 
     /**

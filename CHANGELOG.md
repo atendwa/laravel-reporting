@@ -2,7 +2,14 @@
 
 All notable changes to `atendwa/laravel-reporting` will be documented here.
 
-## Unreleased
+## v0.1.3
+
+- Removed the last dependencies on the origin project: the `BetaFilament` traits/overrides and the global
+  `isSystemStaff()` helper. The package now ships its own `UsesPolicySetup`, `ResourceAccessGate` and
+  `Access::isAdministrator()` (super_admin role, or `isSystemStaff()` on the user model when it exists).
+- `ListReports` now extends Filament's `ListRecords` directly.
+
+## v0.1.2
 
 - Added `reporting:install` (Shield-style) to publish the config and interactively choose the Filament
   cluster or navigation group the Reports/Histories/Schedules resources register under.

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Reporting\Filament\Resources;
 
 use BackedEnum;
-use BetaFilament\Concerns\ResourceAccessGate;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -18,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Reporting\Concerns\ResourceAccessGate;
 use Reporting\Filament\Resources\ReportResource\Actions\GenerateReportAction;
 use Reporting\Filament\Resources\ReportResource\Pages\EditReport;
 use Reporting\Filament\Resources\ReportResource\Pages\ListReports;
@@ -27,6 +27,7 @@ use Reporting\Filament\Resources\ReportResource\RelationManagers\RolesRelationMa
 use Reporting\Filament\Resources\ReportResource\RelationManagers\SchedulesRelationManager;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
+use Reporting\Support\Access;
 use Reporting\Support\Navigation;
 
 final class ReportResource extends Resource
@@ -200,6 +201,6 @@ final class ReportResource extends Resource
 
     public static function canAccess(): bool
     {
-        return isSystemStaff() || auth()->user()?->hasRole('super_admin');
+        return Access::isAdministrator();
     }
 }

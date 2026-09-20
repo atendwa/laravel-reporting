@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Reporting\Filament\Resources;
 
 use BackedEnum;
-use BetaFilament\Concerns\ResourceAccessGate;
-use BetaFilament\Concerns\SupportResourceNavigationGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -21,17 +19,18 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Reporting\Concerns\ResourceAccessGate;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\CreateReportingSchedule;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\EditReportingSchedule;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\ListReportingSchedules;
 use Reporting\Filament\Resources\ReportingScheduleResource\Pages\ViewReportingSchedule;
 use Reporting\Models\ReportingSchedule;
+use Reporting\Support\Access;
 use Reporting\Support\Navigation;
 
 final class ReportingScheduleResource extends Resource
 {
     use ResourceAccessGate;
-    use SupportResourceNavigationGroup;
 
     protected static ?string $model = ReportingSchedule::class;
 
@@ -144,6 +143,6 @@ final class ReportingScheduleResource extends Resource
 
     public static function canAccess(): bool
     {
-        return isSystemStaff() || auth()->user()?->hasRole('super_admin');
+        return Access::isAdministrator();
     }
 }

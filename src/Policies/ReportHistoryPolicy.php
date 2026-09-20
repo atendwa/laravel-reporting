@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Reporting\Policies;
 
-use BetaFilament\Concerns\UsesFilamentPolicySetup;
+use Reporting\Concerns\UsesPolicySetup;
 use Reporting\Filament\Resources\ReportHistoryResource;
 
 class ReportHistoryPolicy
 {
-    use UsesFilamentPolicySetup;
+    use UsesPolicySetup;
 
     protected string $resource = ReportHistoryResource::class;
 }

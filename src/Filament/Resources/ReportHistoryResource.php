@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Reporting\Filament\Resources;
 
 use BackedEnum;
-use BetaFilament\Concerns\ResourceAccessGate;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
@@ -14,12 +13,14 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Reporting\Concerns\ResourceAccessGate;
 use Reporting\Consts\ReportSource;
 use Reporting\Consts\ReportStatus;
 use Reporting\Filament\Resources\ReportHistoryResource\Pages\ListReportHistories;
 use Reporting\Filament\Resources\ReportHistoryResource\Pages\ViewReportHistory;
 use Reporting\Jobs\GenerateReportJob;
 use Reporting\Models\ReportHistory;
+use Reporting\Support\Access;
 use Reporting\Support\Navigation;
 
 final class ReportHistoryResource extends Resource
@@ -165,7 +166,7 @@ final class ReportHistoryResource extends Resource
 
     public static function canAccess(): bool
     {
-        return isSystemStaff() || auth()->user()?->hasRole('super_admin');
+        return Access::isAdministrator();
     }
 
     private static function previewPdfAction(): Action

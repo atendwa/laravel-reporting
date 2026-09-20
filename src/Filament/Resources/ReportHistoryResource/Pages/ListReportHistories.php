@@ -6,6 +6,7 @@ namespace Reporting\Filament\Resources\ReportHistoryResource\Pages;
 
 use Filament\Resources\Pages\ListRecords;
 use Reporting\Filament\Resources\ReportHistoryResource;
+use Reporting\Support\Access;
 
 final class ListReportHistories extends ListRecords
 {
@@ -13,6 +14,6 @@ final class ListReportHistories extends ListRecords
 
     public static function canAccess(array $parameters = []): bool
     {
-        return isSystemStaff() || auth()->user()?->hasRole('super_admin');
+        return Access::isAdministrator();
     }
 }
