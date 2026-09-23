@@ -2,6 +2,27 @@
 
 All notable changes to `atendwa/laravel-reporting` will be documented here.
 
+## v0.1.5
+
+- Fixed `created_by`/`updated_by` being NOT NULL with no default and no code path that ever populated
+  `updated_by` - every report/schedule/history insert failed under strict SQL mode. Both are nullable
+  now and populated everywhere a record is actually created or updated.
+- Fixed `Report::schedules()` / `ReportingSchedule::reports()` querying the wrong pivot table name
+  (`reporting_report_schedules` instead of the actually-migrated `r_report_schedules`) - this was the
+  root cause of `r_report_schedules` missing-table errors.
+- Removed a leftover `isSystemStaff()` special-case in `Access::isAdministrator()` that the v0.1.3
+  cleanup missed - page access is now solely `hasRole('super_admin')` via this package's own
+  spatie/laravel-permission dependency. Also removed the unused, host-specific `Reporting::PANEL`
+  constant.
+- The report font (mPDF/DomPDF) and header logo no longer assume a consuming app has placed
+  `public_path('fonts/futuralt.ttf')` / `public_path('images/branding/logo.png')` - both are now
+  optional, via `config('reporting.pdf_font')` and the existing `config('reporting.logo_path')`,
+  falling back to sane defaults when unset.
+- Fixed DomPDF chunk generation not creating `storage/framework/temp` before writing to it.
+- The package's own test suite had no working harness at all (no `TestCase`, no `phpunit.xml`) and
+  three Filament resource tests referenced test-support classes and a `Team` model that don't exist
+  anywhere in this package. Added a self-contained harness so `vendor/bin/pest` passes on its own.
+
 ## v0.1.4
 
 - Migrations no longer depend on the host project's `Support\Abstractions\PluginMigration` or the `audit()` Blueprint
