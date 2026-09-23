@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <title>{{ $reportName }}</title>
     <style>
+        @if (config('reporting.pdf_font.path') && is_file(config('reporting.pdf_font.path')))
         @font-face {
-            font-family: 'FuturaLT';
-            src: url('file://{{ public_path('fonts/futuralt.ttf') }}') format('truetype');
+            font-family: '{{ config('reporting.pdf_font.name') }}';
+            src: url('file://{{ config('reporting.pdf_font.path') }}') format('truetype');
         }
+        @endif
         body {
-            font-family: 'FuturaLT', Arial, Helvetica, sans-serif;
+            font-family: '{{ config('reporting.pdf_font.name', 'Arial') }}', Arial, Helvetica, sans-serif;
             font-size: 11px;
             color: #1f2937;
             margin: 24px;
@@ -40,13 +42,15 @@
 <body>
 
     @php
-        $imgPath = public_path('images/branding/logo.png');
-        $imgSrc  = 'data:image/' . pathinfo($imgPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode(file_get_contents($imgPath));
+        $imgPath = config('reporting.logo_path');
+        $imgSrc = ($imgPath && is_file($imgPath))
+            ? 'data:image/' . pathinfo($imgPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode(file_get_contents($imgPath))
+            : null;
     @endphp
 
     <table class="header-row" style="margin-bottom: 14px;">
         <tr>
-            <td><img src="{{ $imgSrc }}" height="85" alt="Logo" style="margin-left: -20px"></td>
+            <td>@if ($imgSrc)<img src="{{ $imgSrc }}" height="85" alt="Logo" style="margin-left: -20px">@endif</td>
             <td style="text-align:right">
                 <div class="doc-title">{{ $reportName }}</div>
                 @if(!empty($description))

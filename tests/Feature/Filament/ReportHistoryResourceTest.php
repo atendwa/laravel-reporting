@@ -1,22 +1,18 @@
 <?php
 
 use Filament\Facades\Filament;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Reporting\Consts\Reporting;
 use Reporting\Database\Factories\ReportHistoryFactory;
 use Reporting\Filament\Resources\ReportHistoryResource;
+use Reporting\Tests\TestCase;
 use function Support\Helpers\testFilamentResource;
 use Support\Testing\FilamentResourceTester;
-
-uses(RefreshDatabase::class);
+use Support\Testing\FilamentTestHelpers;
 
 testFilamentResource();
 
 beforeEach(function (): void {
-    //    FilamentTestHelpers::actingAsAuthorisedUser();
-    //    Filament::setTenant(Team::query()->find(2));
-
-    Filament::setCurrentPanel(Filament::getPanel(Reporting::PANEL));
+    FilamentTestHelpers::actingAsAuthorisedUser();
+    Filament::setCurrentPanel(Filament::getPanel(TestCase::PANEL_ID));
 
     $this->tester = new FilamentResourceTester(
         ReportHistoryResource::class,

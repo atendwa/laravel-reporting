@@ -128,6 +128,10 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
         $tempFiles = [];
         $lastIndex = $chunks->count() - 1;
 
+        if (! is_dir(storage_path('framework/temp'))) {
+            mkdir(storage_path('framework/temp'), 0755, recursive: true);
+        }
+
         try {
             $chunks->each(function (Collection $chunk, int $index) use (
                 $generator, $modifiers, &$tempFiles, $lastIndex, $orientation

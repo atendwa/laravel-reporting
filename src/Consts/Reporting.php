@@ -13,8 +13,6 @@ final class Reporting
 {
     public const NAME = 'reporting';
 
-    public const PANEL = 'home';
-
     public const DISPLAY_NAME = 'Reporting';
 
     public const TEST_GROUP = 'reporting-plugin';

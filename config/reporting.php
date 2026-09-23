@@ -103,6 +103,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | PDF Font
+    |--------------------------------------------------------------------------
+    |
+    | A custom TTF font for the mPDF engine's report body. Leave 'path' null
+    | to use mPDF's own bundled default font - no file needed. Set both
+    | 'name' and 'path' to embed your own brand font instead.
+    |
+    */
+    'pdf_font' => [
+        'name' => env('REPORTING_PDF_FONT_NAME'),
+        'path' => env('REPORTING_PDF_FONT_PATH'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue
     |--------------------------------------------------------------------------
     |

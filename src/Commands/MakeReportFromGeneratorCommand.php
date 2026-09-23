@@ -142,6 +142,7 @@ final class MakeReportFromGeneratorCommand extends Command
             'is_heavy' => $generator->isHeavy(),
             'name' => $generator->getName(),
             'created_by' => auth()->id(),
+            'updated_by' => auth()->id(),
             'is_active' => true,
             'group' => $generator->getGroup(),
             'group_rows_by' => $groupingConfig['group_rows_by'] ?? null,

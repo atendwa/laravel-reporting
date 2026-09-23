@@ -51,7 +51,7 @@ final class ReportingSchedule extends Model
     public function reports(): BelongsToMany
     {
         return $this
-            ->belongsToMany(Report::class, 'reporting_report_schedules')
+            ->belongsToMany(Report::class, (new ReportSchedule)->getTable())
             ->withPivot('is_active')
             ->withTimestamps();
     }

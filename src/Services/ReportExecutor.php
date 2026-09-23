@@ -86,6 +86,8 @@ final readonly class ReportExecutor
             'triggered_by_user_id' => $userId,
             'modifiers' => $modifiers,
             'source' => $source,
+            'created_by' => $userId,
+            'updated_by' => $userId,
         ]);
     }
 

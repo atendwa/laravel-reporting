@@ -27,14 +27,9 @@ abstract class PluginMigration extends Migration
         $blueprint->text('user_agent')->nullable();
         $blueprint->ipAddress()->nullable();
 
-        foreach (['created' => false, 'updated' => false, 'deleted' => true, 'restored' => true, 'archived' => true] as $name => $nullable) {
-            $user = $blueprint->unsignedBigInteger($name . '_by')->index();
-            $time = $blueprint->timestamp($name . '_at');
-
-            if ($nullable) {
-                $user->nullable();
-                $time->nullable();
-            }
+        foreach (['created', 'updated', 'deleted', 'restored', 'archived'] as $name) {
+            $blueprint->unsignedBigInteger($name . '_by')->nullable()->index();
+            $blueprint->timestamp($name . '_at')->nullable();
         }
     }
 }

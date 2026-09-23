@@ -93,6 +93,8 @@ final class SetupCommand extends Command
                     'description' => $schedule['description'],
                     'timezone' => config('app.timezone', 'UTC'),
                     'is_active' => true,
+                    'created_by' => auth()->id(),
+                    'updated_by' => auth()->id(),
                 ],
             );
         }

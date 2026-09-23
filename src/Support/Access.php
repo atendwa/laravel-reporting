@@ -14,10 +14,6 @@ final class Access
             return false;
         }
 
-        if (method_exists($user, 'isSystemStaff') && $user->isSystemStaff()) {
-            return true;
-        }
-
         return method_exists($user, 'hasRole') && (bool) $user->hasRole('super_admin');
     }
 }

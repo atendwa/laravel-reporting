@@ -46,8 +46,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Reporting\\Tests\\": "tests/"
-        }
+            "Reporting\\Tests\\": "tests/",
+            "Support\\": "tests/Support/"
+        },
+        "files": [
+            "tests/Support/Helpers/testFilamentResource.php"
+        ]
     },
     "extra": {
         "laravel": {

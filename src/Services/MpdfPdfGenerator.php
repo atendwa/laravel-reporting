@@ -40,8 +40,9 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         ?array $groupingConfig = null,
     ): void {
         $format = $orientation === 'landscape' ? 'A4-L' : 'A4';
+        $font = $this->resolveFont();
 
-        $mpdf = new Mpdf([
+        $mpdf = new Mpdf(array_merge([
             'mode' => 'utf-8',
             'format' => $format,
             'tempDir' => storage_path('framework/mpdf'),
@@ -49,15 +50,10 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
             'margin_right' => 24,
             'margin_top' => 24,
             'margin_bottom' => 24,
-            'default_font' => 'futuralt',
             'default_font_size' => 11,
-            'fontDir' => [public_path('fonts')],
-            'fontdata' => [
-                'futuralt' => ['R' => 'futuralt.ttf'],
-            ],
-        ]);
+        ], $font['mpdf_config']));
 
-        $mpdf->WriteHTML($this->buildCss(), HTMLParserMode::HEADER_CSS);
+        $mpdf->WriteHTML($this->buildCss($font['family']), HTMLParserMode::HEADER_CSS);
         $mpdf->WriteHTML($this->buildHeaderHtml($generator, $modifiers));
 
         if ($groupingConfig !== null && $data->isNotEmpty()) {
@@ -197,11 +193,35 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         return $numericColumns;
     }
 
-    private function buildCss(): string
+    /**
+     * @return array{family: string, mpdf_config: array<string, mixed>}
+     */
+    private function resolveFont(): array
     {
-        return <<<'CSS'
+        $name = config('reporting.pdf_font.name');
+        $path = config('reporting.pdf_font.path');
+
+        if (blank($name) || blank($path) || ! is_file($path)) {
+            return ['family' => 'Arial, Helvetica, sans-serif', 'mpdf_config' => []];
+        }
+
+        return [
+            'family' => $name,
+            'mpdf_config' => [
+                'default_font' => $name,
+                'fontDir' => [dirname($path)],
+                'fontdata' => [
+                    $name => ['R' => basename($path)],
+                ],
+            ],
+        ];
+    }
+
+    private function buildCss(string $fontFamily): string
+    {
+        return <<<CSS
         body {
-            font-family: futuralt, Arial, Helvetica, sans-serif;
+            font-family: {$fontFamily}, Arial, Helvetica, sans-serif;
             font-size: 11px;
             color: #1f2937;
             line-height: 1.5;
@@ -407,9 +427,9 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
 
     private function buildLogoHtml(): string
     {
-        $logoPath = public_path('images/branding/logo.png');
+        $logoPath = config('reporting.logo_path');
 
-        if (! file_exists($logoPath)) {
+        if (blank($logoPath) || ! file_exists($logoPath)) {
             return '';
         }
 

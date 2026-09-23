@@ -1,5 +1,5 @@
 <?php
 
-use Tests\TestCase;
+use Reporting\Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature');
