@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Reporting\Providers;
 
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -45,6 +46,8 @@ use Throwable;
 
 final class ReportingServiceProvider extends PackageServiceProvider
 {
+    private bool $reportsScheduled = false;
+
     public function configurePackage(Package $package): void
     {
         $package
@@ -115,12 +118,21 @@ final class ReportingServiceProvider extends PackageServiceProvider
         ReportHistory::observe(ReportHistoryObserver::class);
     }
 
+    /**
+     * Report schedules live in the database, so they are only loaded when a schedule command starts. Loading them
+     * whenever the Schedule resolved ran a query on every boot (web requests and tests included), since the package's
+     * own console routes resolve it.
+     */
     private function registerScheduledTasks(): void
     {
-        $this->callAfterResolving(
-            Schedule::class,
-            fn (Schedule $schedule) => $this->scheduleReports($schedule)
-        );
+        Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+            if ($this->reportsScheduled || ! str_starts_with((string) $event->command, 'schedule:')) {
+                return;
+            }
+
+            $this->reportsScheduled = true;
+            $this->scheduleReports($this->app->make(Schedule::class));
+        });
     }
 
     private function scheduleReports(Schedule $schedule): void

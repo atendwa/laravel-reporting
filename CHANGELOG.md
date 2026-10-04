@@ -2,6 +2,14 @@
 
 All notable changes to `atendwa/laravel-reporting` will be documented here.
 
+## v0.1.6
+
+- Report schedules are loaded from the database only when a `schedule:*` command starts. They used to load
+  whenever the `Schedule` resolved, which the package's own console routes do on every boot, so every web
+  request and every test ran the query (and, in a test suite booting before migrations, threw and logged a
+  missing-table error each time). Note that Laravel does not raise console events under `runningUnitTests()`,
+  so a test that runs `schedule:list` and expects report schedules needs the `WithConsoleEvents` trait.
+
 ## v0.1.5
 
 - Fixed `created_by`/`updated_by` being NOT NULL with no default and no code path that ever populated
