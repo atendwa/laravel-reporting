@@ -30,9 +30,9 @@ use Reporting\Support\Navigation;
 
 final class ReportingScheduleResource extends Resource
 {
-    protected static bool $isScopedToTenant = false;
-
     use ResourceAccessGate;
+
+    protected static bool $isScopedToTenant = false;
 
     protected static ?string $model = ReportingSchedule::class;
 

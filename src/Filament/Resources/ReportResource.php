@@ -32,9 +32,9 @@ use Reporting\Support\Navigation;
 
 final class ReportResource extends Resource
 {
-    protected static bool $isScopedToTenant = false;
-
     use ResourceAccessGate;
+
+    protected static bool $isScopedToTenant = false;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 

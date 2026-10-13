@@ -25,9 +25,9 @@ use Reporting\Support\Navigation;
 
 final class ReportHistoryResource extends Resource
 {
-    protected static bool $isScopedToTenant = false;
-
     use ResourceAccessGate;
+
+    protected static bool $isScopedToTenant = false;
 
     protected static ?string $model = ReportHistory::class;
 
