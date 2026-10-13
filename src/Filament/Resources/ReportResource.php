@@ -34,6 +34,8 @@ final class ReportResource extends Resource
 {
     use ResourceAccessGate;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?int $navigationSort = 1;

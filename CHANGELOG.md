@@ -2,6 +2,12 @@
 
 All notable changes to `atendwa/laravel-reporting` will be documented here.
 
+## v0.1.7
+
+- The Reports, Histories and Schedules resources are no longer scoped to the panel tenant, so the plugin can be
+  registered on a tenanted panel. Their models have no tenant relationship; reports reach tenants through
+  `IsTenantAware` generators and each role's `can_access_all_tenants` instead.
+
 ## v0.1.6
 
 - Report schedules are loaded from the database only when a `schedule:*` command starts. They used to load

@@ -27,6 +27,8 @@ final class ReportHistoryResource extends Resource
 {
     use ResourceAccessGate;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static ?string $model = ReportHistory::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';

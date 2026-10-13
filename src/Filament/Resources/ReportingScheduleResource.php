@@ -32,6 +32,8 @@ final class ReportingScheduleResource extends Resource
 {
     use ResourceAccessGate;
 
+    protected static bool $isScopedToTenant = false;
+
     protected static ?string $model = ReportingSchedule::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
