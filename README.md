@@ -1,7 +1,13 @@
 # Laravel Reporting
 
+[![Latest Version](https://img.shields.io/packagist/v/atendwa/laravel-reporting)](https://packagist.org/packages/atendwa/laravel-reporting)
+[![PHP](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/php)](composer.json)
+[![Laravel](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/illuminate%2Fcontracts?label=laravel)](composer.json)
+[![Filament](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/filament%2Ffilament?label=filament)](composer.json)
+[![Checks](https://github.com/atendwa/laravel-reporting/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/atendwa/laravel-reporting/actions/workflows/checks.yml)
+
 A queue-based reporting system for Laravel with Filament UI integration: define generators, schedule them,
-export CSV/PDF, and track every run's history — all through a Filament panel.
+export CSV/PDF, and track every run's history, all through a Filament panel.
 
 ## Requirements
 
