@@ -95,6 +95,8 @@ final readonly class ReportExecutor
      * Validate modifiers against the generator's rules.
      *
      * @param  array<string, mixed>  $modifiers
+     *
+     * @throws InvalidModifiersException
      */
     private function validateModifiers(
         GeneratorInterface $generator,

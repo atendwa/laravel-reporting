@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Reporting\Exceptions\GeneratorNotFoundException;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
 use Reporting\Services\ReportExecutor;
@@ -64,6 +65,8 @@ final class ReportDownloadAction
      * @param  array<string, mixed>  $presetModifiers
      *
      * @return array<int, DatePicker|Select|TextInput>
+     *
+     * @throws GeneratorNotFoundException
      */
     private static function buildSchema(string $generatorClass, array $presetModifiers = []): array
     {
@@ -163,6 +166,8 @@ final class ReportDownloadAction
      * @param  array<string, mixed>  $presetModifiers
      *
      * @return array<int, DatePicker|Select|TextInput>
+     *
+     * @throws GeneratorNotFoundException
      */
     private static function buildModifierFields(Report $report, array $presetModifiers = []): array
     {

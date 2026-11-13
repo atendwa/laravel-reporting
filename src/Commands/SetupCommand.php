@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Reporting\Consts\Reporting;
 use Reporting\Contracts\TenantAwareInterface;
+use Reporting\Exceptions\GeneratorNotFoundException;
 use Reporting\Filament\Resources\ReportHistoryResource;
 use Reporting\Filament\Resources\ReportingScheduleResource;
 use Reporting\Filament\Resources\ReportResource;
@@ -22,6 +23,9 @@ final class SetupCommand extends Command
     protected $description = 'Set up the Reporting plugin: generate Shield permissions, seed schedules, '
         . 'and register generators';
 
+    /**
+     * @throws GeneratorNotFoundException
+     */
     public function handle(GeneratorDiscovery $generatorDiscovery): int
     {
         $this->generateShieldPermissions();
@@ -102,6 +106,9 @@ final class SetupCommand extends Command
         $this->components->info('  Default schedules seeded.');
     }
 
+    /**
+     * @throws GeneratorNotFoundException
+     */
     private function registerGenerators(GeneratorDiscovery $generatorDiscovery): void
     {
         $this->components->info('Auto-registering discovered generators...');

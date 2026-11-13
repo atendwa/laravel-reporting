@@ -65,6 +65,8 @@ final class GeneratorDiscovery
 
     /**
      * Resolve a generator instance from class name.
+     *
+     * @throws GeneratorNotFoundException
      */
     public function resolve(string $class): GeneratorInterface
     {
