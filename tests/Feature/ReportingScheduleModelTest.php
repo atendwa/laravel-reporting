@@ -56,4 +56,4 @@ it('supports multiple reports per schedule', function (): void {
     ]));
 
     expect($schedule->refresh()->reports)->toHaveCount(3);
-})->todo();
+});

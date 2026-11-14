@@ -7,6 +7,7 @@ namespace Support\Testing;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Livewire;
+use PHPUnit\Framework\Assert as PHPUnit;
 
 /**
  * Generic smoke tests for a Filament resource: exercises whichever of the index/create/edit/view
@@ -39,6 +40,8 @@ final class FilamentResourceTester
     public function assertCreatePageWorksIfAvailable(): void
     {
         if (! $this->resourceClass::hasPage('create')) {
+            PHPUnit::assertFalse($this->resourceClass::hasPage('create'), 'The resource offers no create page.');
+
             return;
         }
 
@@ -48,6 +51,8 @@ final class FilamentResourceTester
     public function assertEditPageWorksIfAvailable(): void
     {
         if (! $this->resourceClass::hasPage('edit')) {
+            PHPUnit::assertFalse($this->resourceClass::hasPage('edit'), 'The resource offers no edit page.');
+
             return;
         }
 
@@ -59,6 +64,8 @@ final class FilamentResourceTester
     public function assertViewPageWorksIfAvailable(): void
     {
         if (! $this->resourceClass::hasPage('view')) {
+            PHPUnit::assertFalse($this->resourceClass::hasPage('view'), 'The resource offers no view page.');
+
             return;
         }
 
