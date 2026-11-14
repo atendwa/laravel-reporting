@@ -5,6 +5,9 @@ on:
     branches: ['develop', 'staging', 'production']
   pull_request:
 
+env:
+  COMPOSER_AUTH: ${{ secrets.PACKAGES_TOKEN && format('{{"github-oauth":{{"github.com":"{0}"}}}}', secrets.PACKAGES_TOKEN) || '' }}
+
 jobs:
   ci:
     runs-on: ubuntu-24.04
