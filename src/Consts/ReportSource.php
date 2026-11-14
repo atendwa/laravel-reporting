@@ -6,9 +6,9 @@ namespace Reporting\Consts;
 
 final class ReportSource
 {
-    public const SOURCE_SCHEDULED = 'scheduled';
+    public const string SOURCE_SCHEDULED = 'scheduled';
 
-    public const SOURCE_MANUAL = 'manual';
+    public const string SOURCE_MANUAL = 'manual';
 
     /**
      * @return array<string, string>

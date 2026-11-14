@@ -7,12 +7,6 @@ parameters:
 			path: src/Concerns/FormatsReportDates.php
 
 		-
-			message: '#^Method Reporting\\Filament\\Actions\\ReportDownloadAction\:\:buildField\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Filament/Actions/ReportDownloadAction.php
-
-		-
 			message: '#^Method Reporting\\Filament\\Resources\\ReportHistoryResource\:\:getEloquentQuery\(\) should return Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\> but returns Illuminate\\Database\\Eloquent\\Builder\<Reporting\\Models\\ReportHistory\>\.$#'
 			identifier: return.type
 			count: 1
@@ -45,18 +39,6 @@ parameters:
 		-
 			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:teams\(\)\.$#'
 			identifier: method.notFound
-			count: 1
-			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
-
-		-
-			message: '#^Method Reporting\\Filament\\Resources\\ReportResource\\Actions\\GenerateReportAction\:\:buildField\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
-
-		-
-			message: '#^Method Reporting\\Filament\\Resources\\ReportResource\\Actions\\GenerateReportAction\:\:getDefaultName\(\) never returns null so it can be removed from the return type\.$#'
-			identifier: return.unusedType
 			count: 1
 			path: src/Filament/Resources/ReportResource/Actions/GenerateReportAction.php
 

@@ -143,7 +143,11 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
 
         try {
             $chunks->each(function (Collection $chunk, int $index) use (
-                $generator, $modifiers, &$tempFiles, $lastIndex, $orientation
+                $generator,
+                $modifiers,
+                &$tempFiles,
+                $lastIndex,
+                $orientation
             ): void {
                 $tempPath = storage_path('framework/temp/rpt_chunk_' . Str::random(12) . '.pdf');
 

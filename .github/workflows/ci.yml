@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ['develop', 'staging', 'production']
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, openssl, ldap
+
+      - name: Install dependencies
+        run: composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: Rector
+        run: vendor/bin/rector --dry-run --no-diffs
+
+      - name: PHP Insights
+        run: >-
+          vendor/bin/phpinsights analyse src --config-path=phpinsights.php --no-interaction --format=json --summary
+          --min-quality=${{ vars.INSIGHTS_MIN_QUALITY || 90 }}
+          --min-complexity=${{ vars.INSIGHTS_MIN_COMPLEXITY || 90 }}
+          --min-architecture=${{ vars.INSIGHTS_MIN_ARCHITECTURE || 90 }}
+          --min-style=${{ vars.INSIGHTS_MIN_STYLE || 90 }}
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
+      - name: Tests
+        run: vendor/bin/pest --compact

@@ -71,7 +71,6 @@ final class RunReportCommand extends Command
 
         $decoded = json_decode((string) $raw, associative: true);
 
-        /** @var array<string, mixed> */
         return is_array($decoded) ? $decoded : [];
     }
 

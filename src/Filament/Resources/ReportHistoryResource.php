@@ -63,14 +63,7 @@ final class ReportHistoryResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        ReportStatus::STATUS_COMPLETED => 'success',
-                        ReportStatus::STATUS_FAILED => 'danger',
-                        ReportStatus::STATUS_PROCESSING => 'warning',
-                        default => 'gray',
-                    }),
+                self::statusColumn(),
 
                 //                TextColumn::make('source')
                 //                    ->badge()
@@ -97,14 +90,7 @@ final class ReportHistoryResource extends Resource
                     ->numeric()
                     ->sortable(),
 
-                TextColumn::make('file_size')
-                    ->label('Size')
-                    ->formatStateUsing(
-                        fn (?int $state): string => $state !== null
-                        ? number_format($state / 1024, 1) . ' KB'
-                        : '-'
-                    )
-                    ->sortable(),
+                self::fileSizeColumn(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -223,5 +209,29 @@ final class ReportHistoryResource extends Resource
     private static function isCompletedWith(ReportHistory $reportHistory, string $pathAttribute): bool
     {
         return $reportHistory->isCompleted() && filled($reportHistory->{$pathAttribute});
+    }
+
+    private static function fileSizeColumn(): TextColumn
+    {
+        return TextColumn::make('file_size')
+            ->label('Size')
+            ->formatStateUsing(
+                fn (?int $state): string => $state !== null
+                ? number_format($state / 1024, 1) . ' KB'
+                : '-'
+            )
+            ->sortable();
+    }
+
+    private static function statusColumn(): TextColumn
+    {
+        return TextColumn::make('status')
+            ->badge()
+            ->color(fn (string $state): string => match ($state) {
+                ReportStatus::STATUS_COMPLETED => 'success',
+                ReportStatus::STATUS_FAILED => 'danger',
+                ReportStatus::STATUS_PROCESSING => 'warning',
+                default => 'gray',
+            });
     }
 }

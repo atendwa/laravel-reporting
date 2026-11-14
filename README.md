@@ -1,23 +1,13 @@
-# Laravel Reporting
+# atendwa/laravel-reporting
 
-[![Latest Version](https://img.shields.io/packagist/v/atendwa/laravel-reporting)](https://packagist.org/packages/atendwa/laravel-reporting)
-[![PHP](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/php)](composer.json)
-[![Laravel](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/illuminate%2Fcontracts?label=laravel)](composer.json)
-[![Filament](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/filament%2Ffilament?label=filament)](composer.json)
-[![Checks](https://github.com/atendwa/laravel-reporting/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/atendwa/laravel-reporting/actions/workflows/checks.yml)
+[![PHP](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/php?label=php&color=777BB4)](composer.json)
+[![Laravel](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/illuminate%2Fcontracts?label=laravel&color=FF2D20)](composer.json)
+[![Filament](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/filament%2Ffilament?label=filament&color=FDAE4B)](composer.json)
+[![Release](https://img.shields.io/packagist/v/atendwa/laravel-reporting?label=release&color=007EC6)](https://packagist.org/packages/atendwa/laravel-reporting)
+[![CI](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml)
 
-A queue-based reporting system for Laravel with Filament UI integration: define generators, schedule them,
-export CSV/PDF, and track every run's history, all through a Filament panel.
-
-## Requirements
-
-| Package               | Version       |
-|------------------------|---------------|
-| PHP                    | ^8.3          |
-| Laravel                | ^11.0 \| ^12.0 \| ^13.0 |
-| Filament               | ^5.0          |
-
-## What it does
+Queue-based reporting for Laravel with a Filament interface: define generators, schedule them, export CSV and PDF, and
+keep the history of every run.
 
 - Define report **generators** (auto-discovered classes) that query your data and export it as CSV and PDF
 - Schedule automated runs via cron expressions
@@ -25,6 +15,10 @@ export CSV/PDF, and track every run's history, all through a Filament panel.
 - Track every execution with full history (status, duration, file paths, modifiers used)
 - Prevent concurrent execution of heavy reports via cooldown checking
 - Notify users on completion via Filament's notification system
+
+## Requirements
+
+PHP 8.3 or later, Laravel 11, 12 or 13 and Filament 5. A PDF engine: `barryvdh/laravel-dompdf` (default) or `mpdf/mpdf`.
 
 ## Installation
 
@@ -55,7 +49,34 @@ composer require barryvdh/laravel-dompdf   # config('reporting.pdf_engine') = 'd
 composer require mpdf/mpdf                 # config('reporting.pdf_engine') = 'mpdf'
 ```
 
-## Quick start
+## Configuration
+
+Set in `config/reporting.php`.
+
+Key options: `generator_namespaces`, `generator_paths`, `disk`, `directory`, `default_cooldown_minutes`,
+`pdf_engine` (`dompdf`|`mpdf`), `chunk_size`, `pdf_chunk_size`, `logo_path`, `queue`, `cleanup_days`,
+`team_model`.
+
+### Navigation (`navigation.cluster` / `navigation.group`)
+
+The Reports, Histories, and Schedules resources are available out of the box under this package's own
+`Reporting\Filament\Clusters\Reporting` cluster: no configuration needed to get started. To place them
+somewhere else in your panel instead, set either key (applied consistently across all three resources):
+
+```php
+'navigation' => [
+    // Nest under one of your own clusters instead of the package's built-in one.
+    'cluster' => App\Filament\Clusters\Operations::class,
+
+    // Or, if you don't use a cluster, group them under a plain navigation label.
+    'group' => 'Operations',
+],
+```
+
+`reporting:install` walks you through setting these interactively; `cluster` wins over `group` when both
+are set, since a cluster manages its own top-level navigation entry.
+
+## Usage
 
 1. Scaffold a generator:
 
@@ -79,14 +100,14 @@ composer require mpdf/mpdf                 # config('reporting.pdf_engine') = 'm
 3. Open the **Reporting** cluster in your Filament panel — your report is ready to run, schedule, and
    download from there.
 
-## Key concepts
+### Concepts
 
 **Generators** live in `App\Reports\Generators` (configurable via `reporting.generator_namespaces` /
 `reporting.generator_paths`) and implement `GeneratorInterface`. The methods you'll actually write are
 `generate()`, `getHeaders()`, `getModifiers()`, and `getDefaultParameters()`. Everything else (UI, queuing,
 file export, cooldown checking) is handled by the package.
 
-**Modifiers** are filters your generator declares — the package turns them into Filament form fields
+**Modifiers** are filters your generator declares: the package turns them into Filament form fields
 automatically. Supported types: `date_range`, `select`, `multiselect`, `text`, `number`.
 
 **Heavy reports** (`isHeavy(): true`) get a cooldown window (`reporting.default_cooldown_minutes`) so a
@@ -96,12 +117,12 @@ context in the UI.
 **Schedules** are reusable cron configurations that can be attached to multiple reports via a relation
 manager in Filament.
 
-**Tenant-aware generators** — the `Reporting\Generator\Concerns\IsTenantAware` trait is opt-in and scopes
+**Tenant-aware generators**: the `Reporting\Generator\Concerns\IsTenantAware` trait is opt-in and scopes
 data/options to a team/tenant model. Set `reporting.team_model` to your tenant model's FQCN before using
 it; the model must expose an `is_default` boolean column, and your user model must expose a `teams()`
 relation.
 
-## Artisan commands
+### Commands
 
 | Command                                | Purpose                                                    |
 |-----------------------------------------|-------------------------------------------------------------|
@@ -115,45 +136,27 @@ relation.
 | `reporting:plugin:test`                 | Run this package's own test suite with a coverage score      |
 | `reporting:setup`                       | Generate Shield permissions, seed schedules, register generators |
 
-## Configuration (`config/reporting.php`)
+## Extending
 
-Key options: `generator_namespaces`, `generator_paths`, `disk`, `directory`, `default_cooldown_minutes`,
-`pdf_engine` (`dompdf`|`mpdf`), `chunk_size`, `pdf_chunk_size`, `logo_path`, `queue`, `cleanup_days`,
-`team_model`.
-
-### Navigation (`navigation.cluster` / `navigation.group`)
-
-The Reports, Histories, and Schedules resources are available out of the box under this package's own
-`Reporting\Filament\Clusters\Reporting` cluster — no configuration needed to get started. To place them
-somewhere else in your panel instead, set either key (applied consistently across all three resources):
-
-```php
-'navigation' => [
-    // Nest under one of your own clusters instead of the package's built-in one.
-    'cluster' => App\Filament\Clusters\Operations::class,
-
-    // Or, if you don't use a cluster, group them under a plain navigation label.
-    'group' => 'Operations',
-],
-```
-
-`reporting:install` walks you through setting these interactively; `cluster` wins over `group` when both
-are set, since a cluster manages its own top-level navigation entry.
+Write a generator for each report (see "Concepts"): implement `GeneratorInterface`, or scaffold one with
+`reporting:make:generator`, and declare its modifiers so the package builds the form. Add `IsTenantAware` to scope a
+generator to the current team.
 
 ## Testing
 
 ```bash
 composer install
-vendor/bin/pest
+composer quality   # Pint, Rector, PHPStan, Pest
 ```
-
-Test files under `tests/` are being migrated to run standalone via Orchestra Testbench — some may not
-pass yet outside the origin monorepo. Contributions welcome.
 
 ## Contributing
 
 Issues and pull requests are welcome. Please run `vendor/bin/pint` and `vendor/bin/phpstan analyse`
 before submitting.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

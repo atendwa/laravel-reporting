@@ -126,7 +126,7 @@ final class ReportingServiceProvider extends PackageServiceProvider
     private function registerScheduledTasks(): void
     {
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
-            if ($this->reportsScheduled || ! str_starts_with((string) $event->command, 'schedule:')) {
+            if ($this->reportsScheduled || ! str_starts_with($event->command, 'schedule:')) {
                 return;
             }
 

@@ -8,12 +8,12 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Reporting\Models\Report;
 use Reporting\Models\ReportHistory;
 
-final class ReportGenerationStarted
+final readonly class ReportGenerationStarted
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly Report $report,
-        public readonly ReportHistory $history,
+        public Report $report,
+        public ReportHistory $history,
     ) {}
 }

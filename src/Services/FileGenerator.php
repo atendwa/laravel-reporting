@@ -88,7 +88,12 @@ final readonly class FileGenerator
 
         $this->ensureDirectoryExists();
         $this->pdfGeneratorContract->generate(
-            $generator, $data, $modifiers, $this->fullPath($relativePath), $orientation, $groupingConfig
+            $generator,
+            $data,
+            $modifiers,
+            $this->fullPath($relativePath),
+            $orientation,
+            $groupingConfig
         );
 
         return $relativePath;

@@ -9,13 +9,13 @@ use Reporting\Models\Report;
 use Reporting\Models\ReportHistory;
 use Throwable;
 
-final class ReportFailed
+final readonly class ReportFailed
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly Report $report,
-        public readonly ReportHistory $history,
-        public readonly Throwable $exception,
+        public Report $report,
+        public ReportHistory $history,
+        public Throwable $exception,
     ) {}
 }
