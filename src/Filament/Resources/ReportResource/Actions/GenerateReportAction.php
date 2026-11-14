@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Component;
 use Filament\Support\Exceptions\Cancel;
 use Reporting\Contracts\TenantAwareInterface;
+use Reporting\Exceptions\GeneratorNotFoundException;
 use Reporting\Jobs\GenerateReportJob;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
@@ -44,6 +45,8 @@ final class GenerateReportAction extends Action
      * Build form fields from generator modifiers.
      *
      * @return array<int, Component>
+     *
+     * @throws GeneratorNotFoundException
      */
     private function buildModifierForm(Report $report): array
     {
@@ -139,6 +142,8 @@ final class GenerateReportAction extends Action
 
     /**
      * @param  array<string, mixed>  $data
+     *
+     * @throws GeneratorNotFoundException
      */
     private function handleGeneration(Report $report, array $data): mixed
     {

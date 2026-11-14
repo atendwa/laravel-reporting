@@ -28,6 +28,9 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
      * @param  Collection<int, array<string, mixed>>  $data
      * @param  array<string, mixed>  $modifiers
      * @param  array{group_rows_by: string, group_columns_by: string, group_value_column: string}|null  $groupingConfig
+     *
+     * @throws MpdfException
+     * @throws PdfParserException
      */
     public function generate(
         GeneratorInterface $generator,
@@ -86,6 +89,9 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
     /**
      * @param  Collection<int, array<string, mixed>>  $data
      * @param  array<string, mixed>  $modifiers
+     *
+     * @throws MpdfException
+     * @throws PdfParserException
      */
     private function generateFlatPdf(
         GeneratorInterface $generator,
@@ -117,6 +123,9 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
     /**
      * @param  Collection<int, Collection<int, array<string, mixed>>>  $chunks
      * @param  array<string, mixed>  $modifiers
+     *
+     * @throws MpdfException
+     * @throws PdfParserException
      */
     private function generateChunkedPdf(
         GeneratorInterface $generator,

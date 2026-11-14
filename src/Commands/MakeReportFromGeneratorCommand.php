@@ -12,6 +12,7 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\note;
 use Reporting\Consts\Reporting;
 use Reporting\Contracts\TenantAwareInterface;
+use Reporting\Exceptions\GeneratorNotFoundException;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
 
@@ -130,6 +131,9 @@ final class MakeReportFromGeneratorCommand extends Command
         return $classes->map(fn (string $class): Report => $this->createReport($generatorDiscovery, $class));
     }
 
+    /**
+     * @throws GeneratorNotFoundException
+     */
     private function createReport(GeneratorDiscovery $generatorDiscovery, string $selectedClass): Report
     {
         $generator = $generatorDiscovery->resolve($selectedClass);
