@@ -77,41 +77,13 @@ final class ReportResource extends Resource
 
             Textarea::make('description'),
 
-            Select::make('generator_class')
-                ->label('Generator')
-                ->options(fn (): array => (new GeneratorDiscovery)->getGeneratorOptions())
-                ->required()
-                ->unique(ignoreRecord: true)
-                ->reactive()
-                ->afterStateUpdated(function ($state, callable $set): void {
-                    if ($state === null) {
-                        return;
-                    }
-
-                    $generatorDiscovery = new GeneratorDiscovery;
-
-                    if (! $generatorDiscovery->isValidGenerator($state)) {
-                        return;
-                    }
-
-                    $generator = $generatorDiscovery->resolve($state);
-                    $set('is_heavy', $generator->isHeavy());
-                    $set('parameters', $generator->getDefaultParameters());
-                }),
+            self::generatorField(),
 
             Toggle::make('is_heavy')
                 ->label('Heavy Report')
                 ->helperText('Enables cooldown between generations'),
 
-            TextInput::make('cooldown_minutes')
-                ->label('Cooldown (minutes)')
-                ->numeric()
-                ->minValue(1)
-                ->nullable()
-                ->helperText(
-                    'Minutes to wait between generations for heavy reports. Defaults to '
-                    . config('reporting.default_cooldown_minutes', 30) . ' minutes.'
-                ),
+            self::cooldownField(),
 
             Toggle::make('generate_csv')
                 ->label('Generate CSV')
@@ -204,5 +176,43 @@ final class ReportResource extends Resource
     public static function canAccess(): bool
     {
         return Access::isAdministrator();
+    }
+
+    private static function generatorField(): Select
+    {
+        return Select::make('generator_class')
+            ->label('Generator')
+            ->options(fn (): array => (new GeneratorDiscovery)->getGeneratorOptions())
+            ->required()
+            ->unique(ignoreRecord: true)
+            ->reactive()
+            ->afterStateUpdated(function ($state, callable $set): void {
+                if ($state === null) {
+                    return;
+                }
+
+                $generatorDiscovery = new GeneratorDiscovery;
+
+                if (! $generatorDiscovery->isValidGenerator($state)) {
+                    return;
+                }
+
+                $generator = $generatorDiscovery->resolve($state);
+                $set('is_heavy', $generator->isHeavy());
+                $set('parameters', $generator->getDefaultParameters());
+            });
+    }
+
+    private static function cooldownField(): TextInput
+    {
+        return TextInput::make('cooldown_minutes')
+            ->label('Cooldown (minutes)')
+            ->numeric()
+            ->minValue(1)
+            ->nullable()
+            ->helperText(
+                'Minutes to wait between generations for heavy reports. Defaults to '
+                . config('reporting.default_cooldown_minutes', 30) . ' minutes.'
+            );
     }
 }

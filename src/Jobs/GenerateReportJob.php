@@ -38,7 +38,7 @@ final class GenerateReportJob implements //    ShouldBeUnique,
         public readonly ?int $userId = null,
         public readonly string $source = ReportSource::SOURCE_MANUAL,
     ) {
-        $queue = (string) config('reporting.queue', 'default');
+        config('reporting.queue', 'default');
         //        $this->onQueue($queue);
         //        when(filled($queue), fn () => $this->onQueue($queue));
     }

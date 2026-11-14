@@ -13,17 +13,17 @@ use PHPUnit\Framework\Assert as PHPUnit;
  * Generic smoke tests for a Filament resource: exercises whichever of the index/create/edit/view
  * pages the resource actually registers, using its factory to seed and locate records.
  */
-final class FilamentResourceTester
+final readonly class FilamentResourceTester
 {
     /**
      * @param  class-string  $resourceClass
      * @param  class-string<Factory<Model>>  $factoryClass
      */
     public function __construct(
-        public readonly string $resourceClass,
-        public readonly string $factoryClass,
-        public readonly string $searchAttribute,
-        public readonly bool $testSearch = true,
+        public string $resourceClass,
+        public string $factoryClass,
+        public string $searchAttribute,
+        public bool $testSearch = true,
     ) {}
 
     public function assertIndexPageLoads(): void

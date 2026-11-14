@@ -11,13 +11,13 @@ use Reporting\Models\ReportSchedule;
 
 final class Reporting
 {
-    public const NAME = 'reporting';
+    public const string NAME = 'reporting';
 
-    public const DISPLAY_NAME = 'Reporting';
+    public const string DISPLAY_NAME = 'Reporting';
 
-    public const TEST_GROUP = 'reporting-plugin';
+    public const string TEST_GROUP = 'reporting-plugin';
 
-    public const MODELS = [
+    public const array MODELS = [
         ReportSchedule::class,
         ReportHistory::class,
         ReportingSchedule::class,

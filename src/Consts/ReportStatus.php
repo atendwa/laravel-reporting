@@ -6,13 +6,13 @@ namespace Reporting\Consts;
 
 final class ReportStatus
 {
-    public const STATUS_PENDING = 'pending';
+    public const string STATUS_PENDING = 'pending';
 
-    public const STATUS_PROCESSING = 'processing';
+    public const string STATUS_PROCESSING = 'processing';
 
-    public const STATUS_COMPLETED = 'completed';
+    public const string STATUS_COMPLETED = 'completed';
 
-    public const STATUS_FAILED = 'failed';
+    public const string STATUS_FAILED = 'failed';
 
     /**
      * @return array<string, string>

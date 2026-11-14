@@ -36,7 +36,7 @@ final class GenerateReportAction extends Action
             ->color('primary');
     }
 
-    public static function getDefaultName(): ?string
+    public static function getDefaultName(): string
     {
         return 'generate';
     }
@@ -60,7 +60,7 @@ final class GenerateReportAction extends Action
         $modifiers = $generator->getModifiers();
 
         return collect($modifiers)
-            ->map(fn (array $modifier): DatePicker|Select|TextInput|null => $this->buildField($modifier))
+            ->map(fn (array $modifier): DatePicker|Select|TextInput => $this->buildField($modifier))
             ->filter()
             ->toArray();
     }
@@ -70,7 +70,7 @@ final class GenerateReportAction extends Action
      *
      * @param  array<string, mixed>  $modifier
      */
-    private function buildField(array $modifier): DatePicker|Select|TextInput|null
+    private function buildField(array $modifier): DatePicker|Select|TextInput
     {
         $type = $modifier['type'] ?? 'text';
 
