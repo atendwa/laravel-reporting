@@ -4,7 +4,8 @@
 [![Laravel](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/illuminate%2Fcontracts?label=laravel&color=FF2D20)](composer.json)
 [![Filament](https://img.shields.io/packagist/dependency-v/atendwa/laravel-reporting/filament%2Ffilament?label=filament&color=FDAE4B)](composer.json)
 [![Release](https://img.shields.io/packagist/v/atendwa/laravel-reporting?label=release&color=007EC6)](https://packagist.org/packages/atendwa/laravel-reporting)
-[![CI](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml)
+[![Tests](https://github.com/atendwa/laravel-reporting/actions/workflows/tests.yml/badge.svg?branch=develop)](https://github.com/atendwa/laravel-reporting/actions/workflows/tests.yml)
+[![Quality](https://github.com/atendwa/laravel-reporting/actions/workflows/quality.yml/badge.svg?branch=develop)](https://github.com/atendwa/laravel-reporting/actions/workflows/quality.yml)
 
 Queue-based reporting for Laravel with a Filament interface: define generators, schedule them, export CSV and PDF, and
 keep the history of every run.

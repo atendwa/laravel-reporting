@@ -1,0 +1,48 @@
+name: Supply chain
+
+on:
+  push:
+    branches: ['develop', 'main']
+  pull_request:
+  schedule:
+    - cron: '17 4 * * 1'
+
+concurrency:
+  group: supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSER_AUTH: ${{ secrets.PACKAGES_TOKEN && format('{{"github-oauth":{{"github.com":"{0}"}}}}', secrets.PACKAGES_TOKEN) || '' }}
+
+jobs:
+  composer-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, openssl, ldap
+      - name: Install dependencies
+        run: composer update --no-interaction --no-progress --prefer-dist
+      - name: Audit Composer dependencies
+        run: composer audit --no-interaction
+
+  npm-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: 22
+      - name: Install npm dependencies
+        if: hashFiles('package.json') != ''
+        run: npm install --no-audit --no-fund
+      - name: Audit npm dependencies
+        if: hashFiles('package.json') != ''
+        run: npm audit --audit-level=${{ vars.NPM_AUDIT_LEVEL || 'high' }}
