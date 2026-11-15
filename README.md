@@ -6,153 +6,165 @@
 [![Release](https://img.shields.io/packagist/v/atendwa/laravel-reporting?label=release&color=007EC6)](https://packagist.org/packages/atendwa/laravel-reporting)
 [![CI](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/atendwa/laravel-reporting/actions/workflows/ci.yml)
 
-Queue-based reporting for Laravel with a Filament interface: define generators, schedule them, export CSV and PDF, and
-keep the history of every run.
+Reports for Laravel applications, run on the queue and managed in Filament. You write a generator class for each
+report; the package builds its filter form, runs it in the background, exports CSV and PDF, keeps the history of every
+run and can run it on a schedule.
 
-- Define report **generators** (auto-discovered classes) that query your data and export it as CSV and PDF
-- Schedule automated runs via cron expressions
-- Apply dynamic filters/parameters at runtime through a generated Filament form
-- Track every execution with full history (status, duration, file paths, modifiers used)
-- Prevent concurrent execution of heavy reports via cooldown checking
-- Notify users on completion via Filament's notification system
+- **Generators:** classes that return the rows of a report, discovered from the folders you configure.
+- **Filters:** each generator declares its modifiers (dates, selects, numbers, text), and the package turns them into a
+  Filament form.
+- **Exports:** CSV, and PDF through mPDF or DomPDF, written in chunks so large reports stay within memory.
+- **History:** every run is stored with its status, duration, files and the filters used.
+- **Schedules:** cron expressions stored in the database and attached to any number of reports.
+- **Heavy reports:** a cooldown window serves a recent result instead of running the same report again.
+- **Notifications:** the person who ran a report gets a Filament database notification when it completes, with the
+  download links, or when it fails.
 
 ## Requirements
 
-PHP 8.3 or later, Laravel 11, 12 or 13 and Filament 5. A PDF engine: `barryvdh/laravel-dompdf` (default) or `mpdf/mpdf`.
+- PHP 8.3 or later
+- Laravel 11, 12 or 13 and Filament 5
+- `spatie/laravel-permission` (installed with the package); permissions for the resources are generated for Filament
+  Shield
+- A PDF engine: `mpdf/mpdf` (the default) or `barryvdh/laravel-dompdf`
+- A queue worker, and the Laravel scheduler for scheduled reports
 
 ## Installation
 
 ```bash
 composer require atendwa/laravel-reporting
+composer require mpdf/mpdf          # or barryvdh/laravel-dompdf, then set REPORTING_PDF_ENGINE=dompdf
 php artisan migrate
+php artisan reporting:install       # publishes the config and asks where the resources go in the navigation
+php artisan reporting:setup         # Shield permissions, default schedules, registers the discovered generators
 ```
 
-Publish the config and choose where the resources sit in your Filament navigation:
+Register the plugin on each panel that should show the reports:
 
-```bash
-php artisan reporting:install
+```php
+use Reporting\Filament\Plugins\ReportingPlugin;
+
+$panel->plugins([
+    ReportingPlugin::make(),
+]);
 ```
 
-This asks whether to nest the Reports/Histories/Schedules resources under one of your own Filament
-clusters (giving its FQCN), or a plain navigation group label, or leave them under the package's own
-built-in "Reporting" cluster (the default). You can also just publish the config file directly and edit
-it by hand:
-
-```bash
-php artisan vendor:publish --tag=reporting-config
-```
-
-Pick a PDF engine and require it (only one is needed):
-
-```bash
-composer require barryvdh/laravel-dompdf   # config('reporting.pdf_engine') = 'dompdf' (default)
-composer require mpdf/mpdf                 # config('reporting.pdf_engine') = 'mpdf'
-```
+To publish the config without the prompts, run `php artisan vendor:publish --tag=reporting-config`.
 
 ## Configuration
 
-Set in `config/reporting.php`.
+The settings are in `config/reporting.php`.
 
-Key options: `generator_namespaces`, `generator_paths`, `disk`, `directory`, `default_cooldown_minutes`,
-`pdf_engine` (`dompdf`|`mpdf`), `chunk_size`, `pdf_chunk_size`, `logo_path`, `queue`, `cleanup_days`,
-`team_model`.
+| Key | Environment | Default | What it does |
+|---|---|---|---|
+| `generator_namespaces` | | `App\Reports\Generators` | namespaces searched for generators |
+| `generator_paths` | | `app/Reports/Generators` | folders searched for generators |
+| `disk` | `REPORTING_DISK` | `local` | disk the report files are written to |
+| `directory` | | `reports` | folder on that disk |
+| `default_cooldown_minutes` | | `30` | how long a heavy report's last result is served instead of a new run |
+| `pdf_engine` | `REPORTING_PDF_ENGINE` | `mpdf` | `mpdf` (written incrementally) or `dompdf` (chunks merged with FPDI) |
+| `chunk_size` | | `1000` | rows per chunk when writing CSV |
+| `pdf_chunk_size` | | `500` | rows per chunk when writing PDF; smaller uses less memory |
+| `logo_path` | `REPORTING_LOGO_PATH` | none | absolute path to the logo in PDF headers |
+| `pdf_font.name`, `pdf_font.path` | `REPORTING_PDF_FONT_NAME`, `REPORTING_PDF_FONT_PATH` | mPDF's own font | a TTF font for mPDF reports; set both |
+| `queue` | `REPORTING_QUEUE` | `QUEUE_CONNECTION` | queue the report jobs go on |
+| `cleanup_days` | | `90` | history kept by `reporting:prune` |
+| `team_model` | `REPORTING_TEAM_MODEL` | none | the team model, only for tenant-aware generators |
+| `navigation.cluster` | `REPORTING_NAVIGATION_CLUSTER` | the package's `Reporting` cluster | a cluster of yours to put the resources in |
+| `navigation.group` | `REPORTING_NAVIGATION_GROUP` | none | a navigation group, used when there is no cluster |
 
-### Navigation (`navigation.cluster` / `navigation.group`)
-
-The Reports, Histories, and Schedules resources are available out of the box under this package's own
-`Reporting\Filament\Clusters\Reporting` cluster: no configuration needed to get started. To place them
-somewhere else in your panel instead, set either key (applied consistently across all three resources):
-
-```php
-'navigation' => [
-    // Nest under one of your own clusters instead of the package's built-in one.
-    'cluster' => App\Filament\Clusters\Operations::class,
-
-    // Or, if you don't use a cluster, group them under a plain navigation label.
-    'group' => 'Operations',
-],
-```
-
-`reporting:install` walks you through setting these interactively; `cluster` wins over `group` when both
-are set, since a cluster manages its own top-level navigation entry.
+`navigation.cluster` wins when both navigation keys are set, because a cluster has its own navigation entry. The
+setting applies to all three resources: Reports, Histories and Schedules.
 
 ## Usage
 
-1. Scaffold a generator:
+Create a generator, then register it as a report:
 
-   ```bash
-   php artisan reporting:make:generator
-   ```
+```bash
+php artisan reporting:make:generator SalesReport --model=App\\Models\\Order   # --tenant for a tenant-aware one
+php artisan reporting:make:report-from-generator                             # --all registers every new generator
+```
 
-   This creates `app/Reports/Generators/YourReportGenerator.php` implementing `GeneratorInterface`
-   (see [`src/Contracts/GeneratorInterface.php`](src/Contracts/GeneratorInterface.php) for the full
-   contract — `generate()`, `getHeaders()`, `getModifiers()`, `getName()`, etc.).
+The generator implements `Reporting\Contracts\GeneratorInterface`. The methods you fill in are `generate()`,
+`getHeaders()` and `getModifiers()`; the stub fills in the rest (name, group, description, time estimate, whether it is
+heavy, default parameters).
 
-2. Register it as a `Report`:
+```php
+final class SalesReport implements GeneratorInterface
+{
+    public function generate(array $modifiers): Collection
+    {
+        return Order::query()
+            ->when($modifiers['date_from'] ?? null, fn ($query, $from) => $query->where('created_at', '>=', $from))
+            ->get()
+            ->map(fn (Order $order): array => [
+                'reference' => $order->reference,
+                'total' => $order->total,
+            ]);
+    }
 
-   ```bash
-   php artisan reporting:make:report-from-generator
-   ```
+    public function getHeaders(): array
+    {
+        return ['Reference', 'Total'];
+    }
 
-   This walks you through picking a discovered generator and creates the `Report` row that Filament
-   and the scheduler use.
+    public function getModifiers(): array
+    {
+        return [
+            ['name' => 'date_from', 'label' => 'Date from', 'type' => 'date', 'required' => false,
+                'default' => null, 'validation' => 'nullable|date', 'options' => []],
+        ];
+    }
+}
+```
 
-3. Open the **Reporting** cluster in your Filament panel — your report is ready to run, schedule, and
-   download from there.
+The report then appears in the Reports resource, where people can run it with their filters, download the files and
+attach schedules.
 
-### Concepts
-
-**Generators** live in `App\Reports\Generators` (configurable via `reporting.generator_namespaces` /
-`reporting.generator_paths`) and implement `GeneratorInterface`. The methods you'll actually write are
-`generate()`, `getHeaders()`, `getModifiers()`, and `getDefaultParameters()`. Everything else (UI, queuing,
-file export, cooldown checking) is handled by the package.
-
-**Modifiers** are filters your generator declares: the package turns them into Filament form fields
-automatically. Supported types: `date_range`, `select`, `multiselect`, `text`, `number`.
-
-**Heavy reports** (`isHeavy(): true`) get a cooldown window (`reporting.default_cooldown_minutes`) so a
-cached recent result is served instead of re-running the report. Set `estimateExecutionTime()` for
-context in the UI.
-
-**Schedules** are reusable cron configurations that can be attached to multiple reports via a relation
-manager in Filament.
-
-**Tenant-aware generators**: the `Reporting\Generator\Concerns\IsTenantAware` trait is opt-in and scopes
-data/options to a team/tenant model. Set `reporting.team_model` to your tenant model's FQCN before using
-it; the model must expose an `is_default` boolean column, and your user model must expose a `teams()`
-relation.
+- **Modifier types:** `date` (or `date_range`), `select`, `multiselect`, `number` and `text`; `options` fills the
+  selects.
+- **Heavy reports:** return `true` from `isHeavy()` to apply the cooldown; `estimateExecutionTime()` is shown in the
+  interface.
+- **Schedules:** reports attached to a schedule run when the scheduler does, so the server needs
+  `php artisan schedule:run` every minute.
 
 ### Commands
 
-| Command                                | Purpose                                                    |
-|-----------------------------------------|-------------------------------------------------------------|
-| `reporting:install`                     | Publish config and set the navigation cluster/group           |
-| `reporting:run {report}`                | Manually trigger a report                                   |
-| `reporting:make:generator`              | Scaffold a new report generator class                       |
-| `reporting:make:report-from-generator`  | Create a Report model from a discovered generator            |
-| `reporting:prune --days=90`             | Delete old history rows/files                                |
-| `reporting:cache:clear`                 | Refresh the generator discovery cache                        |
-| `reporting:plugin:reset`                | Truncate all reporting tables                                |
-| `reporting:plugin:test`                 | Run this package's own test suite with a coverage score      |
-| `reporting:setup`                       | Generate Shield permissions, seed schedules, register generators |
+| Command | What it does |
+|---|---|
+| `reporting:install` | publishes the config and sets the navigation cluster or group |
+| `reporting:setup` | generates the Shield permissions, seeds the schedules and registers the generators |
+| `reporting:make:generator {name?} {--model=} {--tenant}` | creates a generator class |
+| `reporting:make:report-from-generator {--all} {--regenerate}` | registers generators as reports |
+| `reporting:run {report} {--user=} {--modifiers=} {--force}` | runs a report now; `--force` skips the running check |
+| `reporting:prune {--days=90}` | deletes old history and its files |
+| `reporting:cache:clear` | clears the generator discovery cache |
+| `reporting:plugin:reset {--force}` | empties every reporting table |
+| `reporting:plugin:test {--no-coverage}` | runs the package's own tests |
 
 ## Extending
 
-Write a generator for each report (see "Concepts"): implement `GeneratorInterface`, or scaffold one with
-`reporting:make:generator`, and declare its modifiers so the package builds the form. Add `IsTenantAware` to scope a
-generator to the current team.
+- **Tenant-aware reports:** add the `Reporting\Generator\Concerns\IsTenantAware` trait (or pass `--tenant` when
+  creating the generator) to limit the data and options to the current team. Set `reporting.team_model` first; the
+  team model needs an `is_default` column and the user model a `teams()` relation.
+- **Events:** `ReportGenerationStarted`, `ReportGenerated`, `ReportFailed` and `ReportScheduleUpdated` in
+  `Reporting\Events`, for listeners of your own.
+- **Access:** the Reports, Histories and Schedules resources use the package policies, so access follows the
+  permissions `reporting:setup` creates.
+- **Cross-tab reports:** return `group_rows_by`, `group_columns_by` and `group_value_column` from
+  `getGroupingConfig()` to pivot the rows; return `null` for a flat report.
 
 ## Testing
 
 ```bash
 composer install
-composer quality   # Pint, Rector, PHPStan, Pest
+composer test       # Pest
+composer quality    # Pint, Rector, PHPStan and the tests, as in CI
 ```
 
 ## Contributing
 
-Issues and pull requests are welcome. Please run `vendor/bin/pint` and `vendor/bin/phpstan analyse`
-before submitting.
+Open an issue or a pull request against `develop`. Run `composer quality` before pushing.
 
 ## Changelog
 
@@ -160,4 +172,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-The MIT License (MIT). See [LICENSE](LICENSE) for details.
+The MIT License (MIT). See [LICENSE.md](LICENSE.md).
