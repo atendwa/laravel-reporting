@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Reporting\Models\ReportSchedule;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -17,7 +18,7 @@ function scheduledReportCommands(): array
 {
     return collect(app(Schedule::class)->events())
         ->map(fn (ScheduledEvent $event): string => (string) $event->command)
-        ->filter(fn (string $command): bool => str_contains($command, 'reports:run'))
+        ->filter(fn (string $command): bool => str_contains($command, 'reporting:run'))
         ->values()
         ->all();
 }
@@ -48,6 +49,7 @@ it('schedules active reports when a schedule command starts, once', function ():
     startCommand('schedule:list');
 
     expect(scheduledReportCommands())->toHaveCount(1)
-        ->and(scheduledReportCommands()[0])->toContain("reports:run {$active->report_id}")
-        ->and(app(Schedule::class)->events())->not->toBeEmpty();
+        ->and(scheduledReportCommands()[0])->toContain("reporting:run {$active->report_id}")
+        ->and(app(Schedule::class)->events())->not->toBeEmpty()
+        ->and(Artisan::all())->toHaveKey('reporting:run');
 });

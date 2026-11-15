@@ -138,7 +138,7 @@ final class ReportingServiceProvider extends PackageServiceProvider
     private function scheduleReports(Schedule $schedule): void
     {
         try {
-            /** @var array<int, array{report_id: int, cron: string, timezone: string}> $scheduled */
+            /** @var array<int, array{report_id: int, cron: string, timezone: string, name: string}> $scheduled */
             $scheduled = Cache::remember(
                 CacheKeys::SCHEDULED_REPORTS,
                 CacheTtl::FIVE_MINUTES,
@@ -152,7 +152,7 @@ final class ReportingServiceProvider extends PackageServiceProvider
 
         collect($scheduled)->each(function (array $item) use ($schedule): void {
             $schedule
-                ->command('reports:run', [(string) $item['report_id']])
+                ->command(Reporting::NAME . ':run', [(string) $item['report_id']])
                 ->timezone($item['timezone'])
                 ->name($item['name'])
                 ->withoutOverlapping()
