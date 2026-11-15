@@ -24,29 +24,20 @@ PHP 8.3 or later, Laravel 11, 12 or 13 and Filament 5. A PDF engine: `barryvdh/l
 
 ```bash
 composer require atendwa/laravel-reporting
+composer require mpdf/mpdf          # or barryvdh/laravel-dompdf, then set REPORTING_PDF_ENGINE=dompdf
 php artisan migrate
+php artisan reporting:install       # publishes the config and asks where the resources go in the navigation
+php artisan reporting:setup         # Shield permissions, default schedules, registers the discovered generators
 ```
 
-Publish the config and choose where the resources sit in your Filament navigation:
+Register the plugin on each panel that should show the reports:
 
-```bash
-php artisan reporting:install
-```
+```php
+use Reporting\Filament\Plugins\ReportingPlugin;
 
-This asks whether to nest the Reports/Histories/Schedules resources under one of your own Filament
-clusters (giving its FQCN), or a plain navigation group label, or leave them under the package's own
-built-in "Reporting" cluster (the default). You can also just publish the config file directly and edit
-it by hand:
-
-```bash
-php artisan vendor:publish --tag=reporting-config
-```
-
-Pick a PDF engine and require it (only one is needed):
-
-```bash
-composer require barryvdh/laravel-dompdf   # config('reporting.pdf_engine') = 'dompdf' (default)
-composer require mpdf/mpdf                 # config('reporting.pdf_engine') = 'mpdf'
+$panel->plugins([
+    ReportingPlugin::make(),
+]);
 ```
 
 ## Configuration
@@ -84,21 +75,32 @@ are set, since a cluster manages its own top-level navigation entry.
    php artisan reporting:make:generator
    ```
 
-   This creates `app/Reports/Generators/YourReportGenerator.php` implementing `GeneratorInterface`
-   (see [`src/Contracts/GeneratorInterface.php`](src/Contracts/GeneratorInterface.php) for the full
-   contract — `generate()`, `getHeaders()`, `getModifiers()`, `getName()`, etc.).
+## Configuration
 
-2. Register it as a `Report`:
+The settings are in `config/reporting.php`.
 
-   ```bash
-   php artisan reporting:make:report-from-generator
-   ```
+| Key | Environment | Default | What it does |
+|---|---|---|---|
+| `generator_namespaces` | | `App\Reports\Generators` | namespaces searched for generators |
+| `generator_paths` | | `app/Reports/Generators` | folders searched for generators |
+| `disk` | `REPORTING_DISK` | `local` | disk the report files are written to |
+| `directory` | | `reports` | folder on that disk |
+| `default_cooldown_minutes` | | `30` | how long a heavy report's last result is served instead of a new run |
+| `pdf_engine` | `REPORTING_PDF_ENGINE` | `mpdf` | `mpdf` (written incrementally) or `dompdf` (chunks merged with FPDI) |
+| `chunk_size` | | `1000` | rows per chunk when writing CSV |
+| `pdf_chunk_size` | | `500` | rows per chunk when writing PDF; smaller uses less memory |
+| `logo_path` | `REPORTING_LOGO_PATH` | none | absolute path to the logo in PDF headers |
+| `pdf_font.name`, `pdf_font.path` | `REPORTING_PDF_FONT_NAME`, `REPORTING_PDF_FONT_PATH` | mPDF's own font | a TTF font for mPDF reports; set both |
+| `queue` | `REPORTING_QUEUE` | `QUEUE_CONNECTION` | queue the report jobs go on |
+| `cleanup_days` | | `90` | history kept by `reporting:prune` |
+| `team_model` | `REPORTING_TEAM_MODEL` | none | the team model, only for tenant-aware generators |
+| `navigation.cluster` | `REPORTING_NAVIGATION_CLUSTER` | the package's `Reporting` cluster | a cluster of yours to put the resources in |
+| `navigation.group` | `REPORTING_NAVIGATION_GROUP` | none | a navigation group, used when there is no cluster |
 
-   This walks you through picking a discovered generator and creates the `Report` row that Filament
-   and the scheduler use.
+`navigation.cluster` wins when both navigation keys are set, because a cluster has its own navigation entry. The
+setting applies to all three resources: Reports, Histories and Schedules.
 
-3. Open the **Reporting** cluster in your Filament panel — your report is ready to run, schedule, and
-   download from there.
+## Usage
 
 ### Concepts
 
@@ -151,8 +153,11 @@ composer quality   # Pint, Rector, PHPStan, Pest
 
 ## Contributing
 
-Issues and pull requests are welcome. Please run `vendor/bin/pint` and `vendor/bin/phpstan analyse`
-before submitting.
+Open an issue or a pull request against `develop`. Run `composer quality` before pushing.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Changelog
 
@@ -160,4 +165,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-The MIT License (MIT). See [LICENSE](LICENSE) for details.
+The MIT License (MIT). See [LICENSE.md](LICENSE.md).
