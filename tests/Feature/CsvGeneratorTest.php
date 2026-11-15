@@ -68,3 +68,45 @@ it('generates csv with empty data', function (): void {
         }
     }
 });
+
+it('writes a cross-tab CSV with the totals first and a column per group', function (): void {
+    $path = sys_get_temp_dir() . '/test_grouped_' . uniqid() . '.csv';
+    $data = collect([
+        ['outlet' => 'Main', 'month' => 'Jan', 'region' => 'North', 'total' => 100],
+        ['outlet' => 'Main', 'month' => 'Feb', 'region' => 'North', 'total' => 50],
+        ['outlet' => 'Kiosk', 'month' => 'Jan', 'region' => 'South', 'total' => 25],
+    ]);
+
+    try {
+        (new CsvGenerator)->generate(new TestGenerator, $data, $path, ['group_rows_by' => 'outlet', 'group_columns_by' => 'month', 'group_value_column' => 'total']);
+
+        expect(array_map(str_getcsv(...), array_filter(explode("\n", str_replace("\u{FEFF}", '', (string) file_get_contents($path))))))->toBe([
+            ['Outlet', 'Region', 'Feb', 'Jan'],
+            ['Totals', '', '50', '125'],
+            ['Main', 'North', '50', '100'],
+            ['Kiosk', 'South', '0', '25'],
+        ]);
+    } finally {
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+});
+
+it('keeps numeric group names as column headers', function (): void {
+    $path = sys_get_temp_dir() . '/test_grouped_years_' . uniqid() . '.csv';
+    $data = collect([
+        ['outlet' => 'Main', 'year' => 2025, 'total' => 10],
+        ['outlet' => 'Main', 'year' => 2026, 'total' => 20],
+    ]);
+
+    try {
+        (new CsvGenerator)->generate(new TestGenerator, $data, $path, ['group_rows_by' => 'outlet', 'group_columns_by' => 'year', 'group_value_column' => 'total']);
+
+        expect(str_getcsv(explode("\n", str_replace("\u{FEFF}", '', (string) file_get_contents($path)))[0]))->toBe(['Outlet', '2025', '2026']);
+    } finally {
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+});

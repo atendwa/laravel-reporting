@@ -56,48 +56,32 @@ final class CsvGenerator
      */
     private function generateGrouped(Collection $data, string $fullPath, array $groupingConfig): void
     {
-        $crossTabTransformer = new CrossTabTransformer;
-
-        $pivoted = $crossTabTransformer->pivot(
-            $data,
-            $groupingConfig['group_rows_by'],
-            $groupingConfig['group_columns_by'],
-            $groupingConfig['group_value_column'],
-        );
-
+        $pivoted = (new CrossTabTransformer)->pivot($data, $groupingConfig['group_rows_by'], $groupingConfig['group_columns_by'], $groupingConfig['group_value_column']);
         $rowLabel = Str::headline($groupingConfig['group_rows_by']);
-        $staticColumns = $pivoted['static_columns'];
-        $columnGroups = $pivoted['column_groups'];
+        $writer = SimpleExcelWriter::create($fullPath);
 
-        $simpleExcelWriter = SimpleExcelWriter::create($fullPath);
-
-        $aggregateRow = [$rowLabel => 'Totals'];
-
-        foreach ($staticColumns as $col) {
-            $aggregateRow[Str::headline($col)] = '';
-        }
-
-        foreach ($columnGroups as $colGroup) {
-            $aggregateRow[(string) $colGroup] = $pivoted['aggregates'][$colGroup] ?? 0;
-        }
-
-        $simpleExcelWriter->addRow($aggregateRow);
+        $writer->addRow($this->crossTabRow($rowLabel, 'Totals', [], $pivoted['static_columns'], $pivoted['column_groups'], $pivoted['aggregates']));
 
         foreach ($pivoted['rows'] as $rowKey => $row) {
-            $csvRow = [$rowLabel => $rowKey];
-
-            foreach ($staticColumns as $staticColumn) {
-                $csvRow[Str::headline($staticColumn)] = $row[$staticColumn] ?? '';
-            }
-
-            foreach ($columnGroups as $columnGroup) {
-                $csvRow[(string) $columnGroup] = $row[$columnGroup] ?? 0;
-            }
-
-            $simpleExcelWriter->addRow($csvRow);
+            $writer->addRow($this->crossTabRow($rowLabel, $rowKey, $row, $pivoted['static_columns'], $pivoted['column_groups'], $row));
         }
 
-        $simpleExcelWriter->close();
+        $writer->close();
+    }
+
+    /**
+     * @param  array<string|int, mixed>  $row
+     * @param  array<int, string>  $staticColumns
+     * @param  array<int, string|int>  $columnGroups
+     * @param  array<string|int, mixed>  $values
+     *
+     * @return array<string, mixed>
+     */
+    private function crossTabRow(string $rowLabel, string|int $label, array $row, array $staticColumns, array $columnGroups, array $values): array
+    {
+        return [$rowLabel => $label]
+            + collect($staticColumns)->mapWithKeys(fn (string $column): array => [Str::headline($column) => $row[$column] ?? ''])->all()
+            + collect($columnGroups)->mapWithKeys(fn (string|int $group): array => [(string) $group => $values[$group] ?? 0])->all();
     }
 
     /**
@@ -108,12 +92,6 @@ final class CsvGenerator
      */
     private function mapRowToHeaders(array $row, array $headers): array
     {
-        $mapped = [];
-
-        foreach ($headers as $header) {
-            $mapped[$header] = $row[Str::snake($header)] ?? $row[$header] ?? '';
-        }
-
-        return $mapped;
+        return collect($headers)->mapWithKeys(fn (string $header): array => [$header => $row[Str::snake($header)] ?? $row[$header] ?? ''])->all();
     }
 }
