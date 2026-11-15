@@ -46,39 +46,7 @@ final class RolesRelationManager extends RelationManager
                     ),
             ])
             ->headerActions([
-                Action::make('attach')
-                    ->label('Attach roles')
-                    ->schema([
-                        Select::make('roles')
-                            ->label('Roles')
-                            ->multiple()
-                            ->options(fn (): array => $this->getAvailableRoles())
-
-                            ->required(),
-
-                        Toggle::make('can_access_all_tenants')
-                            ->label('Cross-Tenant Access')
-                            ->helperText(
-                                'Allow users in these roles to generate this report across all teams, '
-                                . 'not just their own.'
-                            )
-                            ->default(state: false),
-                    ])
-                    ->action(function (array $data): void {
-                        /** @var Report $model */
-                        $model = $this->getOwnerRecord();
-
-                        $pivotData = ['can_access_all_tenants' => (bool) ($data['can_access_all_tenants'] ?? false)];
-
-                        $model->roles()->attach(
-                            array_fill_keys($data['roles'], $pivotData)
-                        );
-
-                        Notification::make()
-                            ->title('Roles attached successfully')
-                            ->success()
-                            ->send();
-                    }),
+                $this->attachAction(),
             ])
             ->recordActions([
                 Action::make('toggleCrossTenantAccess')
@@ -126,5 +94,42 @@ final class RolesRelationManager extends RelationManager
             ->whereNotIn('id', $existingRoleIds)
             ->pluck('name', 'id')
             ->all();
+    }
+
+    private function attachAction(): Action
+    {
+        return Action::make('attach')
+            ->label('Attach roles')
+            ->schema([
+                Select::make('roles')
+                    ->label('Roles')
+                    ->multiple()
+                    ->options(fn (): array => $this->getAvailableRoles())
+
+                    ->required(),
+
+                Toggle::make('can_access_all_tenants')
+                    ->label('Cross-Tenant Access')
+                    ->helperText(
+                        'Allow users in these roles to generate this report across all teams, '
+                        . 'not just their own.'
+                    )
+                    ->default(state: false),
+            ])
+            ->action(function (array $data): void {
+                /** @var Report $model */
+                $model = $this->getOwnerRecord();
+
+                $pivotData = ['can_access_all_tenants' => (bool) ($data['can_access_all_tenants'] ?? false)];
+
+                $model->roles()->attach(
+                    array_fill_keys($data['roles'], $pivotData)
+                );
+
+                Notification::make()
+                    ->title('Roles attached successfully')
+                    ->success()
+                    ->send();
+            });
     }
 }

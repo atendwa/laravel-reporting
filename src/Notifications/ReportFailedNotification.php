@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Reporting\Notifications;
 
 use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Database\Eloquent\Model;
 use Reporting\Models\Report;
 use Reporting\Models\ReportHistory;
 
@@ -19,7 +20,7 @@ final class ReportFailedNotification
             return;
         }
 
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> $userModel */
+        /** @var class-string<Model> $userModel */
         $userModel = config('auth.providers.users.model');
 
         $user = $userModel::query()->select(['id', 'name'])->find($reportHistory->triggered_by_user_id);

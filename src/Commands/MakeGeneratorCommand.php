@@ -55,10 +55,23 @@ final class MakeGeneratorCommand extends Command
 
         $stub = filled($model)
             ? $this->buildModelStub(
-                $namespace, $name, $reportName, $description, $isHeavy, $executionTime, $model, $isTenantAware
+                $namespace,
+                $name,
+                $reportName,
+                $description,
+                $isHeavy,
+                $executionTime,
+                $model,
+                $isTenantAware
             )
             : $this->buildPlainStub(
-                $namespace, $name, $reportName, $description, $isHeavy, $executionTime, $isTenantAware
+                $namespace,
+                $name,
+                $reportName,
+                $description,
+                $isHeavy,
+                $executionTime,
+                $isTenantAware
             );
 
         $this->filesystem->put($path, $stub);

@@ -144,7 +144,10 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         $mpdf->WriteHTML($this->buildTableOpenHtml($headers, $numericColumns));
 
         $data->chunk($chunkSize)->each(function (Collection $chunk) use (
-            $mpdf, $headers, $numericFormatter, $numericColumns
+            $mpdf,
+            $headers,
+            $numericFormatter,
+            $numericColumns
         ): void {
             $mpdf->WriteHTML($this->buildRowsHtml($chunk, $headers, $numericFormatter, $numericColumns));
         });
@@ -219,89 +222,7 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
 
     private function buildCss(string $fontFamily): string
     {
-        return <<<CSS
-        body {
-            font-family: {$fontFamily}, Arial, Helvetica, sans-serif;
-            font-size: 11px;
-            color: #1f2937;
-            line-height: 1.5;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-        }
-        .header-row td {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .doc-title {
-            font-size: 16px;
-            color: #02338d;
-            text-align: right;
-            margin-bottom: 8px;
-        }
-        .doc-ref {
-            font-size: 11px;
-            color: #374151;
-            text-align: right;
-            margin-bottom: 5px;
-        }
-        .doc-generated {
-            font-size: 11px;
-            color: #6b7280;
-            text-align: right;
-            margin-top: 8px;
-        }
-        .logo {
-            height: 85px;
-            margin-left: -20px;
-        }
-        .filters {
-            background: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 4px 6px;
-            font-size: 10px;
-            color: #374151;
-            margin-bottom: 14px;
-        }
-        .filters-label {
-            color: #02338d;
-        }
-        thead th {
-            background-color: #02338d;
-            color: #ffffff;
-            padding: 5px 8px;
-            text-align: left;
-            font-weight: 600;
-        }
-        thead th.numeric {
-            text-align: right;
-        }
-        tbody td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            color: #1f2937;
-            vertical-align: middle;
-        }
-        tbody td.numeric {
-            text-align: right;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-        .total-row td {
-            border-top: 2px solid #02338d;
-            padding: 5px 8px;
-            font-size: 11px;
-            color: #1f2937;
-        }
-        .total-row td.numeric {
-            text-align: right;
-            color: #02338d;
-        }
-        CSS;
+        return str_replace('%font%', $fontFamily, (string) file_get_contents(__DIR__ . '/../../resources/css/mpdf.css'));
     }
 
     /**

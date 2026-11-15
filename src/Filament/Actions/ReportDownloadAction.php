@@ -181,7 +181,7 @@ final class ReportDownloadAction
 
         return collect($generator->getModifiers())
             ->reject(fn (array $modifier): bool => array_key_exists($modifier['name'], $presetModifiers))
-            ->map(fn (array $modifier): DatePicker|Select|TextInput|null => self::buildField($modifier))
+            ->map(fn (array $modifier): DatePicker|Select|TextInput => self::buildField($modifier))
             ->filter()
             ->values()
             ->toArray();
@@ -192,7 +192,7 @@ final class ReportDownloadAction
      *
      * @param  array<string, mixed>  $modifier
      */
-    private static function buildField(array $modifier): DatePicker|Select|TextInput|null
+    private static function buildField(array $modifier): DatePicker|Select|TextInput
     {
         $type = $modifier['type'] ?? 'text';
 

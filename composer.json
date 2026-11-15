@@ -31,9 +31,11 @@
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.0",
         "mpdf/mpdf": "^8.2",
+        "nunomaduro/phpinsights": "^2.15",
         "orchestra/testbench": "^10.0",
-        "pestphp/pest": "^3.0",
-        "pestphp/pest-plugin-laravel": "^3.0"
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "rector/rector": "^2.8"
     },
     "suggest": {
         "barryvdh/laravel-dompdf": "Required to use the \"dompdf\" PDF engine (config('reporting.pdf_engine')).",
@@ -63,9 +65,21 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "scripts": {
+        "test": "pest",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint --parallel",
+        "quality": [
+            "pint --parallel --test",
+            "rector --dry-run --no-diffs",
+            "@analyse",
+            "@test"
+        ]
+    }
 }
