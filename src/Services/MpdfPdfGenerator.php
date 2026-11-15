@@ -13,6 +13,7 @@ use Mpdf\Output\Destination;
 use Reporting\Contracts\GeneratorInterface;
 use Reporting\Contracts\PdfGeneratorContract;
 use Reporting\Utilities\CrossTabTransformer;
+use Reporting\Utilities\ModifierDisplayValues;
 use Reporting\Utilities\NumericFormatter;
 
 /**
@@ -39,19 +40,8 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         string $orientation = 'landscape',
         ?array $groupingConfig = null,
     ): void {
-        $format = $orientation === 'landscape' ? 'A4-L' : 'A4';
         $font = $this->resolveFont();
-
-        $mpdf = new Mpdf(array_merge([
-            'mode' => 'utf-8',
-            'format' => $format,
-            'tempDir' => storage_path('framework/mpdf'),
-            'margin_left' => 24,
-            'margin_right' => 24,
-            'margin_top' => 24,
-            'margin_bottom' => 24,
-            'default_font_size' => 11,
-        ], $font['mpdf_config']));
+        $mpdf = $this->newDocument($orientation, $font['mpdf_config']);
 
         $mpdf->WriteHTML($this->buildCss($font['family']), HTMLParserMode::HEADER_CSS);
         $mpdf->WriteHTML($this->buildHeaderHtml($generator, $modifiers));
@@ -67,68 +57,81 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
     }
 
     /**
+     * @param  array<string, mixed>  $fontConfig
+     *
+     * @throws MpdfException
+     */
+    private function newDocument(string $orientation, array $fontConfig): Mpdf
+    {
+        return new Mpdf(array_merge([
+            'mode' => 'utf-8',
+            'format' => $orientation === 'landscape' ? 'A4-L' : 'A4',
+            'tempDir' => storage_path('framework/mpdf'),
+            'margin_left' => 24,
+            'margin_right' => 24,
+            'margin_top' => 24,
+            'margin_bottom' => 24,
+            'default_font_size' => 11,
+        ], $fontConfig));
+    }
+
+    /**
      * @param  Collection<int, array<string, mixed>>  $data
      * @param  array{group_rows_by: string, group_columns_by: string, group_value_column: string}  $groupingConfig
      */
     private function writeGroupedTable(Mpdf $mpdf, Collection $data, array $groupingConfig): void
     {
-        $crossTabTransformer = new CrossTabTransformer;
-        $numericFormatter = new NumericFormatter;
-
-        $pivoted = $crossTabTransformer->pivot(
+        $pivoted = (new CrossTabTransformer)->pivot(
             $data,
             $groupingConfig['group_rows_by'],
             $groupingConfig['group_columns_by'],
             $groupingConfig['group_value_column'],
         );
 
-        $staticColumns = $pivoted['static_columns'];
-        $columnGroups = $pivoted['column_groups'];
-        $rowLabel = Str::headline($groupingConfig['group_rows_by']);
+        $formatter = new NumericFormatter;
+        $static = $pivoted['static_columns'];
+        $groups = $pivoted['column_groups'];
 
-        $html = '<table><thead><tr>';
-        $html .= '<th>' . e($rowLabel) . '</th>';
+        $rows = collect($pivoted['rows'])->map(fn (array $row, string|int $rowKey): string => $this->groupedRowHtml((string) $rowKey, $row, $static, $groups, $formatter))->implode('');
 
-        foreach ($staticColumns as $col) {
-            $html .= '<th>' . e(Str::headline($col)) . '</th>';
-        }
+        $mpdf->WriteHTML('<table><thead><tr>' . $this->groupedHeadHtml(Str::headline($groupingConfig['group_rows_by']), $static, $groups) . '</tr></thead><tbody>'
+            . $rows . $this->groupedTotalsHtml($pivoted['aggregates'], $static, $groups, $formatter) . '</tbody></table>');
+    }
 
-        foreach ($columnGroups as $colGroup) {
-            $html .= '<th class="numeric">' . e((string) $colGroup) . '</th>';
-        }
+    /**
+     * @param  array<int, string>  $static
+     * @param  array<int, string|int>  $groups
+     */
+    private function groupedHeadHtml(string $rowLabel, array $static, array $groups): string
+    {
+        return '<th>' . e($rowLabel) . '</th>'
+            . collect($static)->map(fn (string $column): string => '<th>' . e(Str::headline($column)) . '</th>')->implode('')
+            . collect($groups)->map(fn (string|int $group): string => '<th class="numeric">' . e((string) $group) . '</th>')->implode('');
+    }
 
-        $html .= '</tr></thead><tbody>';
+    /**
+     * @param  array<string|int, mixed>  $row
+     * @param  array<int, string>  $static
+     * @param  array<int, string|int>  $groups
+     */
+    private function groupedRowHtml(string $rowKey, array $row, array $static, array $groups, NumericFormatter $formatter): string
+    {
+        return '<tr><td>' . e($rowKey) . '</td>'
+            . collect($static)->map(fn (string $column): string => '<td>' . e((string) ($row[$column] ?? '')) . '</td>')->implode('')
+            . collect($groups)->map(fn (string|int $group): string => '<td class="numeric">' . e($formatter->format($row[$group] ?? 0)) . '</td>')->implode('')
+            . '</tr>';
+    }
 
-        foreach ($pivoted['rows'] as $rowKey => $row) {
-            $html .= '<tr>';
-            $html .= '<td>' . e((string) $rowKey) . '</td>';
-
-            foreach ($staticColumns as $staticColumn) {
-                $html .= '<td>' . e((string) ($row[$staticColumn] ?? '')) . '</td>';
-            }
-
-            foreach ($columnGroups as $columnGroup) {
-                $html .= '<td class="numeric">' . e($numericFormatter->format($row[$columnGroup] ?? 0)) . '</td>';
-            }
-
-            $html .= '</tr>';
-        }
-
-        $html .= '<tr class="total-row">';
-        $html .= '<td>Totals</td>';
-
-        foreach ($staticColumns as $staticColumn) {
-            $html .= '<td></td>';
-        }
-
-        foreach ($columnGroups as $colGroup) {
-            $html .= '<td class="numeric">' . e($numericFormatter->format($pivoted['aggregates'][$colGroup])) . '</td>';
-        }
-
-        $html .= '</tr>';
-        $html .= '</tbody></table>';
-
-        $mpdf->WriteHTML($html);
+    /**
+     * @param  array<string|int, mixed>  $aggregates
+     * @param  array<int, string>  $static
+     * @param  array<int, string|int>  $groups
+     */
+    private function groupedTotalsHtml(array $aggregates, array $static, array $groups, NumericFormatter $formatter): string
+    {
+        return '<tr class="total-row"><td>Totals</td>' . str_repeat('<td></td>', count($static))
+            . collect($groups)->map(fn (string|int $group): string => '<td class="numeric">' . e($formatter->format($aggregates[$group])) . '</td>')->implode('')
+            . '</tr>';
     }
 
     /**
@@ -156,8 +159,6 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
     }
 
     /**
-     * Scan all data to determine which columns contain exclusively numeric values.
-     *
      * @param  Collection<int, array<string, mixed>>  $data
      * @param  array<int, string>  $headers
      *
@@ -169,31 +170,13 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
             return [];
         }
 
-        $numericFormatter = new NumericFormatter;
-        $numericColumns = [];
+        $formatter = new NumericFormatter;
 
-        foreach ($headers as $header) {
-            $key = Str::snake($header);
-            $allNumeric = true;
+        return collect($headers)->mapWithKeys(fn (string $header): array => [$header => $data->every(function (array $row) use ($header, $formatter): bool {
+            $value = $row[Str::snake($header)] ?? $row[$header] ?? '';
 
-            foreach ($data as $row) {
-                $value = $row[$key] ?? $row[$header] ?? '';
-
-                if (blank($value)) {
-                    continue;
-                }
-
-                if (! $numericFormatter->isNumeric($value)) {
-                    $allNumeric = false;
-
-                    break;
-                }
-            }
-
-            $numericColumns[$header] = $allNumeric;
-        }
-
-        return $numericColumns;
+            return blank($value) || $formatter->isNumeric($value);
+        })])->all();
     }
 
     /**
@@ -230,72 +213,31 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
      */
     private function buildHeaderHtml(GeneratorInterface $generator, array $modifiers): string
     {
-        $name = e($generator->getName());
         $description = e($generator->getDescription());
-        $generatedAt = e(now()->format('d M Y, H:i'));
 
-        $html = '<table class="header-row" style="margin-bottom:14px">';
-        $html .= '<tr>';
-        $html .= '<td>' . $this->buildLogoHtml() . '</td>';
-        $html .= '<td style="text-align:right">';
-        $html .= sprintf('<div class="doc-title">%s</div>', $name);
-
-        if ($description !== '') {
-            $html .= sprintf('<div class="doc-ref">%s</div>', $description);
-        }
-
-        $html .= sprintf('<div class="doc-generated">Generated: %s</div>', $generatedAt);
-        $html .= '</td></tr></table>';
-
-        if ($modifiers !== []) {
-            $resolved = $this->resolveModifierDisplayValues($generator, $modifiers);
-            $html .= '<div class="filters"><span class="filters-label">Filters:</span> ';
-            $parts = [];
-
-            foreach ($resolved as $label => $displayValue) {
-                $parts[] = e($label) . ': ' . e($displayValue);
-            }
-
-            $html .= implode(' | ', $parts);
-            $html .= '</div>';
-        }
-
-        return $html;
+        return '<table class="header-row" style="margin-bottom:14px"><tr>'
+            . '<td>' . $this->buildLogoHtml() . '</td>'
+            . '<td style="text-align:right">'
+            . sprintf('<div class="doc-title">%s</div>', e($generator->getName()))
+            . ($description !== '' ? sprintf('<div class="doc-ref">%s</div>', $description) : '')
+            . sprintf('<div class="doc-generated">Generated: %s</div>', e(now()->format('d M Y, H:i')))
+            . '</td></tr></table>'
+            . $this->filtersHtml($generator, $modifiers);
     }
 
     /**
-     * Resolve raw modifier values to human-readable labels using the generator's definitions.
-     *
      * @param  array<string, mixed>  $modifiers
-     *
-     * @return array<string, string>
      */
-    private function resolveModifierDisplayValues(GeneratorInterface $generator, array $modifiers): array
+    private function filtersHtml(GeneratorInterface $generator, array $modifiers): string
     {
-        $definitions = collect($generator->getModifiers())->keyBy('name');
-        $resolved = [];
-
-        foreach ($modifiers as $key => $value) {
-            $definition = $definitions->get($key);
-            $label = $definition['label'] ?? ucfirst(str_replace('_', ' ', (string) $key));
-            $options = $definition['options'] ?? [];
-
-            if (! empty($options)) {
-                if (is_array($value)) {
-                    $displayValue = collect($value)
-                        ->map(fn (mixed $v): string => (string) ($options[$v] ?? $v))
-                        ->implode(', ');
-                } else {
-                    $displayValue = (string) ($options[$value] ?? $value);
-                }
-            } else {
-                $displayValue = is_array($value) ? implode(', ', $value) : (string) $value;
-            }
-
-            $resolved[$label] = $displayValue;
+        if ($modifiers === []) {
+            return '';
         }
 
-        return $resolved;
+        $parts = collect((new ModifierDisplayValues)->resolve($generator, $modifiers))
+            ->map(fn (string $value, string $label): string => e($label) . ': ' . e($value));
+
+        return '<div class="filters"><span class="filters-label">Filters:</span> ' . $parts->implode(' | ') . '</div>';
     }
 
     /**
@@ -327,23 +269,12 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         NumericFormatter $numericFormatter,
         array $numericColumns = []
     ): string {
-        $html = '';
+        return $rows->map(fn (array $row): string => '<tr>' . collect($headers)->map(function (string $header) use ($row, $numericFormatter, $numericColumns): string {
+            $value = $row[Str::snake($header)] ?? $row[$header] ?? '';
+            $isNumeric = $numericColumns[$header] ?? false;
 
-        foreach ($rows as $row) {
-            $html .= '<tr>';
-
-            foreach ($headers as $header) {
-                $value = $row[Str::snake($header)] ?? $row[$header] ?? '';
-                $isNumericColumn = $numericColumns[$header] ?? false;
-                $class = $isNumericColumn ? ' class="numeric"' : '';
-                $display = $isNumericColumn ? $numericFormatter->format($value) : (string) $value;
-                $html .= '<td' . $class . '>' . e($display) . '</td>';
-            }
-
-            $html .= '</tr>';
-        }
-
-        return $html;
+            return '<td' . ($isNumeric ? ' class="numeric"' : '') . '>' . e($isNumeric ? $numericFormatter->format($value) : (string) $value) . '</td>';
+        })->implode('') . '</tr>')->implode('');
     }
 
     private function buildLogoHtml(): string

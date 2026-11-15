@@ -6,6 +6,7 @@ namespace Reporting\Services;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Mpdf\Mpdf;
 use Mpdf\MpdfException;
@@ -13,6 +14,7 @@ use Mpdf\Output\Destination;
 use Reporting\Contracts\GeneratorInterface;
 use Reporting\Contracts\PdfGeneratorContract;
 use Reporting\Utilities\CrossTabTransformer;
+use Reporting\Utilities\ModifierDisplayValues;
 use setasign\Fpdi\PdfParser\PdfParserException;
 
 /**
@@ -54,36 +56,18 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
      * @param  array<string, mixed>  $modifiers
      * @param  array{group_rows_by: string, group_columns_by: string, group_value_column: string}  $groupingConfig
      */
-    private function generateGroupedPdf(
-        GeneratorInterface $generator,
-        Collection $data,
-        array $modifiers,
-        string $fullPath,
-        string $orientation,
-        array $groupingConfig,
-    ): void {
-        $crossTabTransformer = new CrossTabTransformer;
+    private function generateGroupedPdf(GeneratorInterface $generator, Collection $data, array $modifiers, string $fullPath, string $orientation, array $groupingConfig): void
+    {
+        $pivoted = (new CrossTabTransformer)->pivot($data, $groupingConfig['group_rows_by'], $groupingConfig['group_columns_by'], $groupingConfig['group_value_column']);
 
-        $pivoted = $crossTabTransformer->pivot(
-            $data,
-            $groupingConfig['group_rows_by'],
-            $groupingConfig['group_columns_by'],
-            $groupingConfig['group_value_column'],
-        );
-
-        $pdf = Pdf::loadView('reporting::pdf.grouped', [
-            'modifiers' => $this->resolveModifierDisplayValues($generator, $modifiers),
+        Pdf::loadView('reporting::pdf.grouped', [
+            ...$this->documentData($generator, $modifiers),
             'rowLabel' => Str::headline($groupingConfig['group_rows_by']),
-            'description' => $generator->getDescription(),
             'staticColumns' => $pivoted['static_columns'],
             'columnGroups' => $pivoted['column_groups'],
-            'generatedAt' => now()->format('d M Y, H:i'),
             'aggregates' => $pivoted['aggregates'],
-            'reportName' => $generator->getName(),
             'rows' => $pivoted['rows'],
-        ])->setPaper('a4', $orientation);
-
-        $pdf->save($fullPath);
+        ])->setPaper('a4', $orientation)->save($fullPath);
     }
 
     /**
@@ -93,117 +77,72 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
      * @throws MpdfException
      * @throws PdfParserException
      */
-    private function generateFlatPdf(
-        GeneratorInterface $generator,
-        Collection $data,
-        array $modifiers,
-        string $fullPath,
-        string $orientation,
-    ): void {
-        $chunkSize = (int) config('reporting.pdf_chunk_size', 500);
-        $chunks = $data->chunk($chunkSize);
+    private function generateFlatPdf(GeneratorInterface $generator, Collection $data, array $modifiers, string $fullPath, string $orientation): void
+    {
+        $chunks = $data->chunk((int) config('reporting.pdf_chunk_size', 500));
 
         if ($chunks->count() <= 1) {
-            $this->renderChunk(
-                $generator,
-                $chunks->first() ?? collect(),
-                $modifiers,
-                $fullPath,
-                $orientation,
-                showHeader: true,
-                showFooter: true,
-            );
+            $this->renderChunk($generator, $chunks->first() ?? collect(), $modifiers, $fullPath, $orientation, showHeader: true, showFooter: true);
 
             return;
         }
 
-        $this->generateChunkedPdf($generator, $chunks, $modifiers, $fullPath, $orientation);
+        $tempFiles = $chunks->values()->map(fn (): string => storage_path('framework/temp/rpt_chunk_' . Str::random(12) . '.pdf'))->all();
+
+        try {
+            $this->renderChunks($generator, $chunks, $tempFiles, $modifiers, $orientation);
+            $this->mergeChunks($tempFiles, $fullPath, $orientation);
+        } finally {
+            collect($tempFiles)->filter(fn (string $file): bool => file_exists($file))->each(fn (string $file): bool => unlink($file));
+        }
     }
 
     /**
      * @param  Collection<int, Collection<int, array<string, mixed>>>  $chunks
+     * @param  array<int, string>  $tempFiles
      * @param  array<string, mixed>  $modifiers
-     *
-     * @throws MpdfException
-     * @throws PdfParserException
      */
-    private function generateChunkedPdf(
-        GeneratorInterface $generator,
-        Collection $chunks,
-        array $modifiers,
-        string $fullPath,
-        string $orientation,
-    ): void {
-        $tempFiles = [];
+    private function renderChunks(GeneratorInterface $generator, Collection $chunks, array $tempFiles, array $modifiers, string $orientation): void
+    {
+        File::ensureDirectoryExists(storage_path('framework/temp'));
         $lastIndex = $chunks->count() - 1;
 
-        if (! is_dir(storage_path('framework/temp'))) {
-            mkdir(storage_path('framework/temp'), 0755, recursive: true);
-        }
-
-        try {
-            $chunks->each(function (Collection $chunk, int $index) use (
-                $generator,
-                $modifiers,
-                &$tempFiles,
-                $lastIndex,
-                $orientation
-            ): void {
-                $tempPath = storage_path('framework/temp/rpt_chunk_' . Str::random(12) . '.pdf');
-
-                $this->renderChunk(
-                    $generator,
-                    $chunk,
-                    $modifiers,
-                    $tempPath,
-                    $orientation,
-                    showHeader: $index === 0,
-                    showFooter: $index === $lastIndex,
-                );
-
-                $tempFiles[] = $tempPath;
-            });
-
-            $this->mergeChunks($tempFiles, $fullPath, $orientation);
-        } finally {
-            foreach ($tempFiles as $tempFile) {
-                if (file_exists($tempFile)) {
-                    unlink($tempFile);
-                }
-            }
-        }
+        $chunks->values()->each(fn (Collection $chunk, int $index) => $this->renderChunk(
+            $generator, $chunk, $modifiers, $tempFiles[$index], $orientation, showHeader: $index === 0, showFooter: $index === $lastIndex,
+        ));
     }
 
     /**
      * @param  Collection<int, array<string, mixed>>  $rows
      * @param  array<string, mixed>  $modifiers
      */
-    private function renderChunk(
-        GeneratorInterface $generator,
-        Collection $rows,
-        array $modifiers,
-        string $outputPath,
-        string $orientation,
-        bool $showHeader,
-        bool $showFooter,
-    ): void {
-        $pdf = Pdf::loadView('reporting::pdf.chunk', [
-            'modifiers' => $this->resolveModifierDisplayValues($generator, $modifiers),
-            'description' => $generator->getDescription(),
-            'generatedAt' => now()->format('d M Y, H:i'),
-            'reportName' => $generator->getName(),
+    private function renderChunk(GeneratorInterface $generator, Collection $rows, array $modifiers, string $outputPath, string $orientation, bool $showHeader, bool $showFooter): void
+    {
+        Pdf::loadView('reporting::pdf.chunk', [
+            ...$this->documentData($generator, $modifiers),
             'headers' => $generator->getHeaders(),
             'showHeader' => $showHeader,
             'showFooter' => $showFooter,
             'rows' => $rows,
-        ])->setPaper('a4', $orientation);
-
-        $pdf->save($outputPath);
+        ])->setPaper('a4', $orientation)->save($outputPath);
     }
 
     /**
-     * Merge multiple PDF files into one using mPDF's FPDI integration.
+     * @param  array<string, mixed>  $modifiers
      *
+     * @return array{modifiers: array<string, string>, description: string, generatedAt: string, reportName: string}
+     */
+    private function documentData(GeneratorInterface $generator, array $modifiers): array
+    {
+        return [
+            'modifiers' => (new ModifierDisplayValues)->resolve($generator, $modifiers),
+            'description' => $generator->getDescription(),
+            'generatedAt' => now()->format('d M Y, H:i'),
+            'reportName' => $generator->getName(),
+        ];
+    }
+
+    /**
      * @param  array<int, string>  $tempFiles
      *
      * @throws MpdfException
@@ -212,70 +151,36 @@ final class DompdfPdfGenerator implements PdfGeneratorContract
     private function mergeChunks(array $tempFiles, string $outputPath, string $orientation): void
     {
         $isLandscape = $orientation === 'landscape';
-        $width = $isLandscape ? 297 : 210;
-        $height = $isLandscape ? 210 : 297;
-        $mpdfOrientation = $isLandscape ? 'L' : 'P';
-
         $mpdf = new Mpdf([
             'tempDir' => storage_path('framework/mpdf'),
-            'format' => [$width, $height],
+            'format' => $isLandscape ? [297, 210] : [210, 297],
             'margin_bottom' => 0,
             'margin_right' => 0,
             'margin_left' => 0,
             'margin_top' => 0,
         ]);
 
-        $isFirstPage = true;
-
-        foreach ($tempFiles as $tempFile) {
-            $pageCount = $mpdf->setSourceFile($tempFile);
-
-            for ($page = 1; $page <= $pageCount; ++$page) {
-                if (! $isFirstPage) {
-                    $mpdf->AddPage($mpdfOrientation);
-                }
-
-                $template = $mpdf->importPage($page);
-                $mpdf->useTemplate($template);
-                $isFirstPage = false;
-            }
+        foreach ($tempFiles as $fileIndex => $tempFile) {
+            $this->appendPages($mpdf, $tempFile, $isLandscape ? 'L' : 'P', isFirstFile: $fileIndex === 0);
         }
 
         $mpdf->Output($outputPath, Destination::FILE);
     }
 
     /**
-     * Resolve raw modifier values to human-readable labels using the generator's definitions.
-     *
-     * @param  array<string, mixed>  $modifiers
-     *
-     * @return array<string, string>
+     * @throws MpdfException
+     * @throws PdfParserException
      */
-    private function resolveModifierDisplayValues(GeneratorInterface $generator, array $modifiers): array
+    private function appendPages(Mpdf $mpdf, string $file, string $orientation, bool $isFirstFile): void
     {
-        $definitions = collect($generator->getModifiers())->keyBy('name');
-        $resolved = [];
+        $pageCount = $mpdf->setSourceFile($file);
 
-        foreach ($modifiers as $key => $value) {
-            $definition = $definitions->get($key);
-            $label = $definition['label'] ?? ucfirst(str_replace('_', ' ', (string) $key));
-            $options = $definition['options'] ?? [];
-
-            if (! empty($options)) {
-                if (is_array($value)) {
-                    $displayValue = collect($value)
-                        ->map(fn (mixed $v): string => (string) ($options[$v] ?? $v))
-                        ->implode(', ');
-                } else {
-                    $displayValue = (string) ($options[$value] ?? $value);
-                }
-            } else {
-                $displayValue = is_array($value) ? implode(', ', $value) : (string) $value;
+        for ($page = 1; $page <= $pageCount; ++$page) {
+            if (! $isFirstFile || $page > 1) {
+                $mpdf->AddPage($orientation);
             }
 
-            $resolved[$label] = $displayValue;
+            $mpdf->useTemplate($mpdf->importPage($page));
         }
-
-        return $resolved;
     }
 }
