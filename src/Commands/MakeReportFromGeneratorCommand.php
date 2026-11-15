@@ -75,7 +75,7 @@ final class MakeReportFromGeneratorCommand extends Command
 
         info('Next steps:');
         info('  - Attach schedules via the Filament UI');
-        info('  - Run manually: php artisan reports:run {id}');
+        info('  - Run manually: php artisan ' . Reporting::NAME . ':run {id}');
 
         return self::SUCCESS;
     }
@@ -100,7 +100,7 @@ final class MakeReportFromGeneratorCommand extends Command
 
         info('Next steps:');
         info('  - Attach schedules via the Filament UI');
-        info('  - Run manually: php artisan reports:run {id}');
+        info('  - Run manually: php artisan ' . Reporting::NAME . ':run {id}');
 
         return self::SUCCESS;
     }
