@@ -16,6 +16,7 @@ use Reporting\Filament\Support\ModifierField;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
 use Reporting\Services\ReportExecutor;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 /**
@@ -104,13 +105,7 @@ final class ReportDownloadAction
         $report = Report::query()->where('generator_class', $generatorClass)->first();
 
         if (! $report) {
-            Notification::make()
-                ->title('Report Not Found')
-                ->body(sprintf('No report configured for generator "%s".', class_basename($generatorClass)))
-                ->danger()
-                ->send();
-
-            return null;
+            return self::warn('Report Not Found', sprintf('No report configured for generator "%s".', class_basename($generatorClass)), danger: true);
         }
 
         $format = $data['_format'] ?? ($report->generate_pdf ? 'pdf' : 'csv');
@@ -119,43 +114,30 @@ final class ReportDownloadAction
         try {
             $history = app(ReportExecutor::class)->execute($report, $data, auth()->id());
         } catch (Throwable $throwable) {
-            Notification::make()
-                ->title('Report Generation Failed')
-                ->body($throwable->getMessage())
-                ->danger()
-                ->send();
-
-            return null;
+            return self::warn('Report Generation Failed', $throwable->getMessage(), danger: true);
         }
 
+        return match (true) {
+            $format === 'pdf' && filled($history->pdf_file_path) => self::stream((string) $history->pdf_file_path, 'application/pdf'),
+            filled($history->csv_file_path) => self::stream((string) $history->csv_file_path, 'text/csv'),
+            default => self::warn('No File Available', 'The report completed but no downloadable file was produced.'),
+        };
+    }
+
+    private static function stream(string $path, string $contentType): StreamedResponse
+    {
         /** @var string $disk */
         $disk = config('reporting.disk', 'local');
 
-        if ($format === 'pdf' && filled($history->pdf_file_path)) {
-            return response()->streamDownload(
-                function () use ($disk, $history): void {
-                    echo Storage::disk($disk)->get($history->pdf_file_path);
-                },
-                basename((string) $history->pdf_file_path),
-                ['Content-Type' => 'application/pdf'],
-            );
-        }
+        return response()->streamDownload(function () use ($disk, $path): void {
+            echo Storage::disk($disk)->get($path);
+        }, basename($path), ['Content-Type' => $contentType]);
+    }
 
-        if (filled($history->csv_file_path)) {
-            return response()->streamDownload(
-                function () use ($disk, $history): void {
-                    echo Storage::disk($disk)->get($history->csv_file_path);
-                },
-                basename((string) $history->csv_file_path),
-                ['Content-Type' => 'text/csv'],
-            );
-        }
-
-        Notification::make()
-            ->title('No File Available')
-            ->body('The report completed but no downloadable file was produced.')
-            ->warning()
-            ->send();
+    private static function warn(string $title, string $body, bool $danger = false): null
+    {
+        $notification = Notification::make()->title($title)->body($body);
+        ($danger ? $notification->danger() : $notification->warning())->send();
 
         return null;
     }
