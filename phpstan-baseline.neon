@@ -109,12 +109,6 @@ parameters:
 			path: src/Policies/ReportingSchedulePolicy.php
 
 		-
-			message: '#^Offset ''name'' does not exist on array\{report_id\: int, cron\: string, timezone\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/Providers/ReportingServiceProvider.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>generate_csv" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1

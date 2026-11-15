@@ -150,8 +150,8 @@ it('writes a cross-tab table with a column per group and a totals row', function
 });
 
 it('lists the filters with their option labels in the header', function (): void {
-    $html = (fn () => $this->buildHeaderHtml(new TestGenerator, ['category' => 'Alpha']))->call(new MpdfPdfGenerator);
+    $html = (fn (): string => $this->buildHeaderHtml(new TestGenerator, ['category' => 'Alpha']))->call(new MpdfPdfGenerator);
 
     expect($html)->toContain('<span class="filters-label">Filters:</span>')->toContain('Category: Alpha')
-        ->and((fn () => $this->buildHeaderHtml(new TestGenerator, []))->call(new MpdfPdfGenerator))->not->toContain('Filters:');
+        ->and((fn (): string => $this->buildHeaderHtml(new TestGenerator, []))->call(new MpdfPdfGenerator))->not->toContain('Filters:');
 });
