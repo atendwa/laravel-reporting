@@ -12,3 +12,5 @@ resources/mail/
 **/views/vendor/mail/
 **/mail/html/
 **/mail/text/
+.ai/
+**/views/emails/
