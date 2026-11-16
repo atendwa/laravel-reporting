@@ -8,3 +8,9 @@ public/
 **/.git
 package-lock.json
 composer.lock
+resources/mail/
+**/views/vendor/mail/
+**/mail/html/
+**/mail/text/
+.ai/
+**/views/emails/
