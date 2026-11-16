@@ -42,42 +42,27 @@ final class MakeGeneratorCommand extends Command
         $description = $this->getReportDescription($reportName);
         $executionTime = $this->getEstimatedExecutionTime();
         $model = $this->resolveModel();
-
         $path = $this->getPath($namespace, $name);
 
         if ($this->filesystem->exists($path)) {
-            error('Generator [' . $name . '}] already exists at [' . $path . '].');
+            error('Generator [' . $name . '] already exists at [' . $path . '].');
 
             return self::FAILURE;
         }
 
         $this->filesystem->ensureDirectoryExists(dirname($path));
-
-        $stub = filled($model)
-            ? $this->buildModelStub(
-                $namespace,
-                $name,
-                $reportName,
-                $description,
-                $isHeavy,
-                $executionTime,
-                $model,
-                $isTenantAware
-            )
-            : $this->buildPlainStub(
-                $namespace,
-                $name,
-                $reportName,
-                $description,
-                $isHeavy,
-                $executionTime,
-                $isTenantAware
-            );
-
-        $this->filesystem->put($path, $stub);
+        $this->filesystem->put($path, filled($model)
+            ? $this->buildModelStub($namespace, $name, $reportName, $description, $isHeavy, $executionTime, $model, $isTenantAware)
+            : $this->buildPlainStub($namespace, $name, $reportName, $description, $isHeavy, $executionTime, $isTenantAware));
 
         info('Generator [' . $name . '] created successfully at [' . $path . '].');
+        $this->printNextSteps($model, $isTenantAware);
 
+        return self::SUCCESS;
+    }
+
+    private function printNextSteps(?string $model, bool $isTenantAware): void
+    {
         if (filled($model)) {
             info('Model [' . $model . '] is wired into the generator.');
         }
@@ -93,8 +78,6 @@ final class MakeGeneratorCommand extends Command
         info('  - Implement the generate() method with your query logic');
         info('  - Define modifiers, headers, and default parameters');
         info('  - Register a Report: php artisan ' . Reporting::NAME . ':make:report-from-generator');
-
-        return self::SUCCESS;
     }
 
     private function getGeneratorName(): string
@@ -199,19 +182,11 @@ final class MakeGeneratorCommand extends Command
             return $this->qualifyModel($model);
         }
 
-        $shouldCreate = confirm('Should this generator be backed by an Eloquent model?', default: false);
-
-        if (! $shouldCreate) {
+        if (! confirm('Should this generator be backed by an Eloquent model?', default: false)) {
             return null;
         }
 
-        $input = text(
-            label: 'Which model should be used?',
-            placeholder: 'e.g. User or App\\Models\\User',
-            required: true,
-        );
-
-        return $this->qualifyModel($input);
+        return $this->qualifyModel(text(label: 'Which model should be used?', placeholder: 'e.g. User or App\\Models\\User', required: true));
     }
 
     private function qualifyModel(string $model): string

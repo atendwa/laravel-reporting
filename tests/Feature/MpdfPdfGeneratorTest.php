@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Mpdf\HTMLParserMode;
+use Mpdf\Mpdf;
 use Reporting\Contracts\PdfGeneratorContract;
 use Reporting\Generator\TestGenerator;
 use Reporting\Services\MpdfPdfGenerator;
@@ -118,4 +120,38 @@ it('can be resolved from container', function (): void {
     $pdfGeneratorContract = app(PdfGeneratorContract::class);
 
     expect($pdfGeneratorContract)->toBeInstanceOf(MpdfPdfGenerator::class);
+});
+
+it('writes a cross-tab table with a column per group and a totals row', function (): void {
+    $mpdf = new class(['tempDir' => sys_get_temp_dir()]) extends Mpdf
+    {
+        public string $written = '';
+
+        public function WriteHTML($html, $mode = HTMLParserMode::DEFAULT_MODE, $init = true, $close = true): void
+        {
+            $this->written .= $html;
+        }
+    };
+
+    $data = collect([
+        ['outlet' => 'Main', 'month' => 'Jan', 'region' => 'North', 'total' => 100],
+        ['outlet' => 'Main', 'month' => 'Feb', 'region' => 'North', 'total' => 50],
+        ['outlet' => 'Kiosk', 'month' => 'Jan', 'region' => 'South', 'total' => 25],
+    ]);
+
+    (fn (Mpdf $pdf) => $this->writeGroupedTable($pdf, $data, ['group_rows_by' => 'outlet', 'group_columns_by' => 'month', 'group_value_column' => 'total']))
+        ->call(new MpdfPdfGenerator, $mpdf);
+
+    expect($mpdf->written)
+        ->toContain('<thead><tr><th>Outlet</th><th>Region</th><th class="numeric">Feb</th><th class="numeric">Jan</th></tr></thead>')
+        ->toContain('<tr><td>Main</td><td>North</td><td class="numeric">50</td><td class="numeric">100</td></tr>')
+        ->toContain('<tr><td>Kiosk</td><td>South</td><td class="numeric">0</td><td class="numeric">25</td></tr>')
+        ->toContain('<tr class="total-row"><td>Totals</td><td></td><td class="numeric">50</td><td class="numeric">125</td></tr>');
+});
+
+it('lists the filters with their option labels in the header', function (): void {
+    $html = (fn (): string => $this->buildHeaderHtml(new TestGenerator, ['category' => 'Alpha']))->call(new MpdfPdfGenerator);
+
+    expect($html)->toContain('<span class="filters-label">Filters:</span>')->toContain('Category: Alpha')
+        ->and((fn (): string => $this->buildHeaderHtml(new TestGenerator, []))->call(new MpdfPdfGenerator))->not->toContain('Filters:');
 });

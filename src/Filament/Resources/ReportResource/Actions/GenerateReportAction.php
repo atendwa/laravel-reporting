@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Support\Exceptions\Cancel;
 use Reporting\Contracts\TenantAwareInterface;
 use Reporting\Exceptions\GeneratorNotFoundException;
+use Reporting\Filament\Support\ModifierField;
 use Reporting\Jobs\GenerateReportJob;
 use Reporting\Models\Report;
 use Reporting\Services\GeneratorDiscovery;
@@ -60,50 +61,9 @@ final class GenerateReportAction extends Action
         $modifiers = $generator->getModifiers();
 
         return collect($modifiers)
-            ->map(fn (array $modifier): DatePicker|Select|TextInput => $this->buildField($modifier))
+            ->map(fn (array $modifier): DatePicker|Select|TextInput => ModifierField::make($modifier))
             ->filter()
             ->toArray();
-    }
-
-    /**
-     * Build a Filament form field from a modifier definition.
-     *
-     * @param  array<string, mixed>  $modifier
-     */
-    private function buildField(array $modifier): DatePicker|Select|TextInput
-    {
-        $type = $modifier['type'] ?? 'text';
-
-        return match ($type) {
-            'date_range', 'date' => DatePicker::make($modifier['name'])
-                ->label($modifier['label'] ?? $modifier['name'])
-                ->required($modifier['required'] ?? false)
-                ->default($modifier['default'] ?? null),
-
-            'select' => Select::make($modifier['name'])
-                ->label($modifier['label'] ?? $modifier['name'])
-                ->options($modifier['options'] ?? [])
-                ->required($modifier['required'] ?? false)
-                ->default($modifier['default'] ?? null),
-
-            'multiselect' => Select::make($modifier['name'])
-                ->label($modifier['label'] ?? $modifier['name'])
-                ->options($modifier['options'] ?? [])
-                ->multiple()
-                ->required($modifier['required'] ?? false)
-                ->default($modifier['default'] ?? null),
-
-            'number' => TextInput::make($modifier['name'])
-                ->label($modifier['label'] ?? $modifier['name'])
-                ->numeric()
-                ->required($modifier['required'] ?? false)
-                ->default($modifier['default'] ?? null),
-
-            default => TextInput::make($modifier['name'])
-                ->label($modifier['label'] ?? $modifier['name'])
-                ->required($modifier['required'] ?? false)
-                ->default($modifier['default'] ?? null),
-        };
     }
 
     /**

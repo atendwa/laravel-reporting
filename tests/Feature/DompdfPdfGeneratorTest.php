@@ -161,3 +161,23 @@ it('cleans up temp files after merging', function (): void {
         }
     }
 });
+
+it('generates a cross-tab pdf when the generator groups its rows', function (): void {
+    $data = collect([
+        ['outlet' => 'Main', 'month' => 'Jan', 'total' => 100],
+        ['outlet' => 'Kiosk', 'month' => 'Feb', 'total' => 25],
+    ]);
+    $path = sys_get_temp_dir() . '/test_dompdf_grouped_' . uniqid() . '.pdf';
+
+    try {
+        (new DompdfPdfGenerator)->generate(new TestGenerator, $data, ['category' => 'Alpha'], $path, 'portrait', [
+            'group_rows_by' => 'outlet', 'group_columns_by' => 'month', 'group_value_column' => 'total',
+        ]);
+
+        expect(str_starts_with((string) file_get_contents($path), '%PDF'))->toBeTrue();
+    } finally {
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+});
