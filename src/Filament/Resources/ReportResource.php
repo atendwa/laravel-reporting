@@ -18,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Reporting\Concerns\ResourceAccessGate;
+use Reporting\Filament\Resources\ReportResource\Actions\AttachRoleBulkAction;
 use Reporting\Filament\Resources\ReportResource\Actions\GenerateReportAction;
 use Reporting\Filament\Resources\ReportResource\Pages\EditReport;
 use Reporting\Filament\Resources\ReportResource\Pages\ListReports;
@@ -130,6 +131,9 @@ final class ReportResource extends Resource
             ->recordActions([
                 GenerateReportAction::make()->slideOver(),
                 ViewAction::make(),
+            ])
+            ->toolbarActions([
+                AttachRoleBulkAction::make(),
             ]);
     }
 
