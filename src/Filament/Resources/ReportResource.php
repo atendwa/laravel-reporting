@@ -175,7 +175,7 @@ final class ReportResource extends Resource
 
     public static function canAccess(): bool
     {
-        return Access::isAdministrator();
+        return Access::allows('viewAny', Report::class);
     }
 
     private static function generatorField(): Select

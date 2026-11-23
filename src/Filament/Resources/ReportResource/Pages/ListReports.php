@@ -7,6 +7,7 @@ namespace Reporting\Filament\Resources\ReportResource\Pages;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 use Reporting\Filament\Resources\ReportResource;
+use Reporting\Models\Report;
 use Reporting\Support\Access;
 
 final class ListReports extends ListRecords
@@ -15,7 +16,7 @@ final class ListReports extends ListRecords
 
     public static function canAccess(array $parameters = []): bool
     {
-        return Access::isAdministrator();
+        return Access::allows('viewAny', Report::class);
     }
 
     /**
