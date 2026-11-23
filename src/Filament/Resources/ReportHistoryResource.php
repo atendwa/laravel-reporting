@@ -154,7 +154,7 @@ final class ReportHistoryResource extends Resource
 
     public static function canAccess(): bool
     {
-        return Access::isAdministrator();
+        return Access::allows('viewAny', ReportHistory::class);
     }
 
     private static function previewPdfAction(): Action
