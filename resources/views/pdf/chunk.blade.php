@@ -85,7 +85,7 @@
                 @forelse ($rows as $row)
                     <tr>
                         @foreach ($headers as $header)
-                            <td>{{ $row[\Illuminate\Support\Str::snake($header)] ?? ($row[$header] ?? "") }}</td>
+                            <td>{{ \Reporting\Support\RowValue::for($row, $header) }}</td>
                         @endforeach
                     </tr>
                 @empty
