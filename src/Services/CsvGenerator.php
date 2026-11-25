@@ -7,6 +7,7 @@ namespace Reporting\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Reporting\Contracts\GeneratorInterface;
+use Reporting\Support\RowValue;
 use Reporting\Utilities\CrossTabTransformer;
 use Spatie\SimpleExcel\SimpleExcelWriter;
 
@@ -92,6 +93,6 @@ final class CsvGenerator
      */
     private function mapRowToHeaders(array $row, array $headers): array
     {
-        return collect($headers)->mapWithKeys(fn (string $header): array => [$header => $row[Str::snake($header)] ?? $row[$header] ?? ''])->all();
+        return collect($headers)->mapWithKeys(fn (string $header): array => [$header => RowValue::for($row, $header)])->all();
     }
 }

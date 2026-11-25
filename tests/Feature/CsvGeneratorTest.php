@@ -110,3 +110,20 @@ it('keeps numeric group names as column headers', function (): void {
         }
     }
 });
+
+it('fills an all-capitals column such as ID from its lower-case row key', function (): void {
+    $generator = new TestGenerator;
+    $path = sys_get_temp_dir() . '/test_csv_ids_' . uniqid() . '.csv';
+
+    try {
+        (new CsvGenerator)->generate($generator, $generator->generate([]), $path);
+
+        $rows = array_map(str_getcsv(...), array_slice(file($path, FILE_IGNORE_NEW_LINES), 1));
+
+        expect(array_map(fn (array $row): string => mb_ltrim($row[0], "\u{FEFF}"), $rows))->toBe(['1', '2', '3']);
+    } finally {
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+});

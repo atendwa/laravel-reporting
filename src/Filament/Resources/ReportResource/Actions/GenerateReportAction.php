@@ -147,10 +147,10 @@ final class GenerateReportAction extends Action
         if ($this->userCanAccessAllTenants($report)) {
             $data['tenant_ids'] = null;
         } else {
-            $data['tenant_ids'] = auth()->user()
-                ?->teams()
-                ->where('is_default', false)
-                ->pluck('id')
+            $teams = auth()->user()?->teams();
+
+            $data['tenant_ids'] = $teams?->where('is_default', false)
+                ->pluck($teams->getRelated()->getQualifiedKeyName())
                 ->toArray() ?? [];
         }
 

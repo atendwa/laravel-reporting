@@ -12,6 +12,7 @@ use Mpdf\MpdfException;
 use Mpdf\Output\Destination;
 use Reporting\Contracts\GeneratorInterface;
 use Reporting\Contracts\PdfGeneratorContract;
+use Reporting\Support\RowValue;
 use Reporting\Utilities\CrossTabTransformer;
 use Reporting\Utilities\ModifierDisplayValues;
 use Reporting\Utilities\NumericFormatter;
@@ -173,7 +174,7 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         $formatter = new NumericFormatter;
 
         return collect($headers)->mapWithKeys(fn (string $header): array => [$header => $data->every(function (array $row) use ($header, $formatter): bool {
-            $value = $row[Str::snake($header)] ?? $row[$header] ?? '';
+            $value = RowValue::for($row, $header);
 
             return blank($value) || $formatter->isNumeric($value);
         })])->all();
@@ -270,7 +271,7 @@ final class MpdfPdfGenerator implements PdfGeneratorContract
         array $numericColumns = []
     ): string {
         return $rows->map(fn (array $row): string => '<tr>' . collect($headers)->map(function (string $header) use ($row, $numericFormatter, $numericColumns): string {
-            $value = $row[Str::snake($header)] ?? $row[$header] ?? '';
+            $value = RowValue::for($row, $header);
             $isNumeric = $numericColumns[$header] ?? false;
 
             return '<td' . ($isNumeric ? ' class="numeric"' : '') . '>' . e($isNumeric ? $numericFormatter->format($value) : (string) $value) . '</td>';
